@@ -98,5 +98,29 @@ export const authService = {
     } catch {
       return null;
     }
+  },
+
+  /**
+   * Get user profile from API
+   */
+  async getProfile() {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await apiClient.get("/auth/profile", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.message || "Failed to fetch profile");
+      }
+      throw error;
+    }
   }
 };

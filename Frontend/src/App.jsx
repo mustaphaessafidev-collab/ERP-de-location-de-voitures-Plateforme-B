@@ -10,6 +10,9 @@ import RegisterPage from './pages/RegisterPage';
 import ValidateEmailPage from './pages/ValidateEmailPage';
 import TestLoggedPage from './pages/TestLoggedPage';
 
+// Profile Page
+import DriveEaseProfile from './components/profile/DriveEaseProfile';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -27,6 +30,7 @@ export default function App() {
         <Route path="/VehicleDetail/:id" element={<VehicleDetails />} />
         <Route path="/reservation" element={<ReservationPage />} />
         <Route path="/booking-review" element={<ReservationPage />} />
+        <Route path="/profile" element={<DriveEaseProfile />} />
         
         {/* Default route */}
         <Route path="/" element={<Navigate to="/register" replace />} />
