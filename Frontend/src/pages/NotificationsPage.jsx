@@ -19,7 +19,7 @@ function NotificationsPage() {
       const data = await getUserNotifications(userId);
       setNotifications(data.notifications || []);
     } catch (error) {
-      console.error("Failed to fetch notifications:", error);
+      console.error("Failed to fetch  test notifications:", error);
     } finally {
       setLoading(false);
     }
