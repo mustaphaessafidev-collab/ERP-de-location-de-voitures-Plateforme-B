@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-
-dotenv.config({ path: "prisma/.env" });
 
 const toBoolean = (value: string | undefined, defaultValue: boolean) => {
   return value?.toLowerCase() === "true" ? true : value?.toLowerCase() === "false" ? false : defaultValue;
@@ -14,6 +11,16 @@ const toString = (value: string | undefined, defaultValue: string) => {
   return String(value) ?? defaultValue;
 };
 
+const isAwsRdsConnectionString = (url: string) => /\.rds\.amazonaws\.com/i.test(url);
+
+const databaseUrl = process.env.DATABASE_URL;
+/** TLS for pg: set DATABASE_SSL=true, or use an AWS RDS host in DATABASE_URL. */
+const databaseUseSsl =
+  toBoolean(process.env.DATABASE_SSL, false) ||
+  (typeof databaseUrl === "string" && isAwsRdsConnectionString(databaseUrl));
+
+/** When using TLS, verify server cert against CAs. Set false if you see "self-signed certificate in certificate chain" (e.g. proxy / custom RDS). Default true. */
+const databaseSslRejectUnauthorized = toBoolean(process.env.DATABASE_SSL_REJECT_UNAUTHORIZED, true);
 
 export const env = {
   port: toNumber(process.env.PORT, 8000),
@@ -43,5 +50,8 @@ export const env = {
     enabled: toBoolean(process.env.RECAPTCHA_ENABLED, false),
     secretKey: toString(process.env.RECAPTCHA_SECRET_KEY, ""),
   },
+  databaseUrl,
+  databaseUseSsl,
+  databaseSslRejectUnauthorized,
 };
 

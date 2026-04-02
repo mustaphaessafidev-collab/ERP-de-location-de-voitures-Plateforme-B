@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authController } from "../controllers/auth.controller";
 import { recaptchaMiddleware } from "../middlewares/recaptcha.middleware";
+import { prisma } from "../config/prisma";
 
 export const authRouter = Router();
 
@@ -10,3 +11,4 @@ authRouter.post("/login", recaptchaMiddleware, authController.login);
 authRouter.post("/forgot-password", recaptchaMiddleware, authController.forgotPassword);
 authRouter.post("/reset-password", recaptchaMiddleware, authController.resetPassword);
 authRouter.put("/update-password", recaptchaMiddleware, authController.updatePassword);
+

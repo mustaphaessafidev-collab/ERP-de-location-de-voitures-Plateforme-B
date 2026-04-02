@@ -1,9 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { apiRouter } from "./routes";
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandler, httpErrorHandler } from "./middlewares/errorHandler";
 import morgan from "morgan";
-import { httpErrorHandler } from "./middlewares/httpErrorHandler";
 
 export function createApp() {
   const app = express();
@@ -18,11 +17,6 @@ export function createApp() {
   });
 
   app.use("/api", apiRouter);
-
-  
-
-
-
   app.use(errorHandler);
   app.use(httpErrorHandler);
 

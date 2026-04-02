@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --poll --watch src src/server.ts",
     "build": "tsc && node -e \"const fs=require('fs'); const p='src/templates/', d='dist/templates/'; fs.mkdirSync(d,{recursive:true}); ['email.ejs','welcome.ejs','reset-password.ejs','validate-email.ejs'].forEach(f=>fs.copyFileSync(p+f,d+f))\"",
     "start": "node dist/server.js",
     "deploy": "npm run build && prisma generate",

@@ -6,6 +6,15 @@ import { send as sendMail, isMailConfigured } from "./mail.service";
 import { toUserResponse } from "../models";
 import { env } from "../config/env";
 import {
+  CinAlreadyRegisteredError,
+  EmailNotValidatedError,
+  InvalidCredentialsError,
+  InvalidResetTokenError,
+  InvalidVerificationTokenError,
+  UserAlreadyRegisteredError,
+  UserNotFoundError,
+} from "../errors/auth.errors";
+import {
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
@@ -51,9 +60,9 @@ export const authService = {
   async register(payload: unknown) {
     const data = registerSchema.parse(payload) as RegisterInput;
     const existing = await authRepository.findByEmail(data.email);
-    if (existing) throw new Error("Email already registered");
+    if (existing) throw new UserAlreadyRegisteredError();
     const byCin = await authRepository.findByCin(data.cin);
-    if (byCin) throw new Error("CIN already registered");
+    if (byCin) throw new CinAlreadyRegisteredError();
     const hashed = await hashPassword(data.password);
     const user = await authRepository.create({
       nom_complet: data.nom_complet,
@@ -81,11 +90,11 @@ export const authService = {
     const { otp } = validateEmailSchema.parse(payload) as ValidateEmailInput;
     const record = await authRepository.findValidEmailVerificationToken(otp);
     if (!record || record.expiresAt < new Date())
-      throw new Error("Invalid or expired verification token");
+      throw new InvalidVerificationTokenError();
     await authRepository.setEmailValidated(record.userId);
     await authRepository.deleteEmailVerificationToken(record.id);
     const user = await authRepository.findByEmail(record.user.email);
-    if (!user) throw new Error("User not found");
+    if (!user) throw new UserNotFoundError();
     await sendMail({
       to: user.email,
       subject: "Welcome",
@@ -99,10 +108,10 @@ export const authService = {
   async login(payload: unknown) {
     const data = loginSchema.parse(payload) as LoginInput;
     const user = await authRepository.findByEmail(data.email);
-    if (!user) throw new Error("Invalid email or password");
-    if (user.isEmailValidated !== true) throw new Error("Email not validated");
+    if (!user) throw new InvalidCredentialsError();
+    if (user.isEmailValidated !== true) throw new EmailNotValidatedError();
     const ok = await comparePassword(data.password, user.password);
-    if (!ok) throw new Error("Invalid email or password");
+    if (!ok) throw new InvalidCredentialsError();
     const token = signToken(user.id, user.email);
     return { user: toUserResponse(user), token };
   },
@@ -132,7 +141,7 @@ export const authService = {
     const data = resetPasswordSchema.parse(payload) as ResetPasswordInput;
     const record = await authRepository.findValidResetToken(data.token);
     if (!record || record.expiresAt < new Date())
-      throw new Error("Invalid or expired reset token");
+      throw new InvalidResetTokenError();
     const hashed = await hashPassword(data.password);
     await authRepository.updatePasswordByUserId(record.userId, hashed);
     await authRepository.deleteResetToken(record.id);
@@ -142,9 +151,9 @@ export const authService = {
   async updatePassword(payload: unknown) {
     const data = updatePasswordSchema.parse(payload) as UpdatePasswordInput;
     const user = await authRepository.findByEmail(data.email);
-    if (!user) throw new Error("Invalid email or password");
+    if (!user) throw new InvalidCredentialsError();
     const ok = await comparePassword(data.currentPassword, user.password);
-    if (!ok) throw new Error("Invalid email or password");
+    if (!ok) throw new InvalidCredentialsError();
     const hashed = await hashPassword(data.newPassword);
     await authRepository.updatePasswordByUserId(user.id, hashed);
     return { message: "Password updated successfully" };
