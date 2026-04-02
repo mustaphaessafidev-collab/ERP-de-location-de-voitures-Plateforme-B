@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { env } from "../config/env";
+import { MailDeliveryError } from "../errors/mail.errors";
 import {
   buildStyledHtml,
   buildTemplateHtml,
@@ -88,13 +89,17 @@ export async function send(options: SendOptions): Promise<void> {
     html = await buildStyledHtml({ title: subject, body: textToBodyHtml(text) });
   }
 
-  await transport.sendMail({
-    from: env.mailFrom,
-    to,
-    subject,
-    text,
-    html,
-  });
+  try {
+    await transport.sendMail({
+      from: env.mailFrom,
+      to,
+      subject,
+      text,
+      html,
+    });
+  } catch (cause) {
+    throw new MailDeliveryError(cause);
+  }
 }
 
 export function isMailConfigured(): boolean {

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createApp } from "./app";
 import { env } from "./config/env";
 import { checkDatabaseConnection, prisma } from "./config/prisma";
@@ -9,6 +10,10 @@ const logDatabaseStatus = (error: unknown) => {
   if (error instanceof DatabaseConfigError || error instanceof DatabaseConnectionError) {
     // eslint-disable-next-line no-console
     console.error(`${error.name}: ${error.message}`);
+    if (error instanceof DatabaseConnectionError && error.cause !== undefined) {
+      // eslint-disable-next-line no-console
+      console.error("Caused by:", error.cause);
+    }
     return;
   }
   // eslint-disable-next-line no-console
@@ -45,4 +50,3 @@ const startServer = () => {
 };
 
 void startServer();
-

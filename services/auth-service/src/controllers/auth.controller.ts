@@ -5,7 +5,7 @@ export const authController = {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       await authService.register(req.body);
-      res.status(203).json();
+      res.status(201).json({ message: "Registration check your email for verification" });
     } catch (e) {
       next(e);
     }

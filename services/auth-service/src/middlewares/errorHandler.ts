@@ -5,6 +5,8 @@ function getErrorMessage(err: unknown): string {
   const raw =
     err instanceof Error
       ? err.message
+      : typeof err === "object" && err !== null && "message" in err
+        ? String((err as { message?: unknown }).message ?? "Unknown error")
       : typeof err === "string"
         ? err
         : "Unknown error";
@@ -28,8 +30,25 @@ export function errorHandler(
     `[API_ERROR] ${new Date().toISOString()} ${req.method} ${req.originalUrl} ` +
       `status=${parsed.statusCode} code=${String(parsed.body.code ?? "UNKNOWN_ERROR")} reason="${reason}"`,
   );
-  if (parsed.statusCode >= 500) {
-    return res.status(500).json({ message: "Internal server error", code: "INTERNAL_SERVER_ERROR" });
+
+  // Only hide details for unknown failures (parseError default). Keep 503 AppErrors etc. visible.
+  const hideDetails =
+    parsed.statusCode === 500 && parsed.body.code === "INTERNAL_SERVER_ERROR";
+  if (hideDetails) {
+    // Full error in server logs (stack for Error instances).
+    // eslint-disable-next-line no-console
+    console.error(err);
+    const payload: Record<string, unknown> = {
+      message: "Internal server error",
+      code: "INTERNAL_SERVER_ERROR",
+    };
+    if (process.env.NODE_ENV === "development") {
+      payload.debug = {
+        reason,
+        name: err instanceof Error ? err.name : typeof err,
+      };
+    }
+    return res.status(500).json(payload);
   }
 
   return res.status(parsed.statusCode).json(parsed.body);
