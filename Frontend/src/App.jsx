@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ValidateEmailPage from './pages/ValidateEmailPage';
 import TestLoggedPage from './pages/TestLoggedPage';
+import NotificationsPage from './pages/NotificationsPage.jsx';
 
 export default function App() {
   return (
@@ -27,7 +28,7 @@ export default function App() {
         <Route path="/VehicleDetail/:id" element={<VehicleDetails />} />
         <Route path="/reservation" element={<ReservationPage />} />
         <Route path="/booking-review" element={<ReservationPage />} />
-        
+        <Route path="/notifications" element={<NotificationsPage />} />
         {/* Default route */}
         <Route path="/" element={<Navigate to="/register" replace />} />
       </Routes>
