@@ -40,6 +40,7 @@ export default function Navbar() {
                 type="button"
                 className="text-slate-400 transition hover:text-slate-600"
                 aria-label="Notifications"
+                onClick={() => navigate("/notifications")}
               >
                 <Bell size={20} />
               </button>

@@ -7,5 +7,6 @@ export default function App() {
     <AuthProvider>
       <RouterProvider router={appRouter} />
     </AuthProvider>
+
   );
 }

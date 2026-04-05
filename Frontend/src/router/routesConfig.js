@@ -28,7 +28,14 @@ export const NAV_ROUTE_DEFS = [
     icon: "Calendar",
   },
 
-
+  {
+    path: "/booking-review",
+    label: "Réservation en cours",
+    isPrivate: true,
+    showInNavbar: true,
+    activeMatch: "prefix",
+    icon: "CircleDashed",
+  },
 
 ];
 

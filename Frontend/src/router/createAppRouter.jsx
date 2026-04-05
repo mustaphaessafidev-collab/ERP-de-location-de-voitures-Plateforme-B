@@ -10,6 +10,7 @@ import VehicleDetailsPage from "../pages/VehicleDetailsPage";
 import ReservationPage from "../components/reservation/Reservation";
 import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import NotificationsPage from "../pages/NotificationsPage";
 
 const publicRoutes = mapRoutesToRouter([
   { path: "/", element: <Navigate to="/VehicleCatalogPage" replace /> },
@@ -68,6 +69,10 @@ const privateRoutes = mapRoutesToRouter([
       />
     ),
   },
+
+  
+  { path: "/notifications", element: <NotificationsPage /> },
+  { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
   { path: "/booking-review", element: <ReservationPage /> },
 ]);
