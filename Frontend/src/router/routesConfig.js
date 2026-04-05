@@ -3,7 +3,15 @@
  * Icon keys map to `NAVBAR_ICON_MAP` in `navbarIcons.js`.
  */
 export const NAV_ROUTE_DEFS = [
+
   {
+  path: "/",
+  label: "Accueil",
+  isPrivate: false,
+  showInNavbar: true,
+  activeMatch: "exact",
+  icon: "House",
+  },  {
     path: "/VehicleCatalogPage",
     label: "Véhicules",
     isPrivate: false,

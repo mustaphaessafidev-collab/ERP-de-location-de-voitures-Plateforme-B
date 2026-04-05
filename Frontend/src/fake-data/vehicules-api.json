@@ -141,8 +141,55 @@
         "updated_at": "2026-03-15T07:31:00Z"
       }
     },
+    
     {
       "id": 4,
+      "agence_id": 3,
+      "modele_id": 5,
+      "categorie_id": 2,
+      "immatriculation": "123460-C-3",
+      "date_mise_en_circulation": "2024-06-01",
+      "kilometrage": 7000,
+      "statut": "disponible",
+      "photo_url": "https://i.pinimg.com/736x/15/90/7a/15907a4282d502080d50d3d69e261be1.jpg",
+      "prix_jour": 75,
+      "carburant": "Hybride",
+      "transmission": "Automatique",
+      "places": 5,
+      "favori": false,
+      "created_at": "2026-03-15T10:20:00Z",
+      "updated_at": "2026-03-15T10:20:00Z",
+      "modele": {
+        "id": 5,
+        "marque_id": 5,
+        "nom": "RAV4 Hybrid AWD",
+        "created_at": "2026-03-15T09:04:00Z",
+        "updated_at": "2026-03-15T09:04:00Z",
+        "marque": {
+          "id": 5,
+          "nom": "TOYOTA",
+          "created_at": "2026-03-15T08:04:00Z",
+          "updated_at": "2026-03-15T08:04:00Z"
+        }
+      },
+      "categorie": {
+        "id": 2,
+        "libelle": "SUV",
+        "tarif_jour_base": 75,
+        "created_at": "2026-03-15T08:31:00Z",
+        "updated_at": "2026-03-15T08:31:00Z"
+      },
+      "agence": {
+        "id": 3,
+        "nom": "Agence Marrakech Guéliz",
+        "adresse": "8 Rue Mohammed V",
+        "ville": "Marrakech",
+        "telephone": "0524000003",
+        "created_at": "2026-03-15T07:32:00Z",
+        "updated_at": "2026-03-15T07:32:00Z"
+      }
+    },{
+      "id": 5,
       "agence_id": 2,
       "modele_id": 4,
       "categorie_id": 4,
@@ -186,53 +233,6 @@
         "telephone": "0537000002",
         "created_at": "2026-03-15T07:31:00Z",
         "updated_at": "2026-03-15T07:31:00Z"
-      }
-    },
-    {
-      "id": 5,
-      "agence_id": 3,
-      "modele_id": 5,
-      "categorie_id": 2,
-      "immatriculation": "123460-C-3",
-      "date_mise_en_circulation": "2024-06-01",
-      "kilometrage": 7000,
-      "statut": "maintenance",
-      "photo_url": "https://i.pinimg.com/736x/15/90/7a/15907a4282d502080d50d3d69e261be1.jpg",
-      "prix_jour": 75,
-      "carburant": "Hybride",
-      "transmission": "Automatique",
-      "places": 5,
-      "favori": false,
-      "created_at": "2026-03-15T10:20:00Z",
-      "updated_at": "2026-03-15T10:20:00Z",
-      "modele": {
-        "id": 5,
-        "marque_id": 5,
-        "nom": "RAV4 Hybrid AWD",
-        "created_at": "2026-03-15T09:04:00Z",
-        "updated_at": "2026-03-15T09:04:00Z",
-        "marque": {
-          "id": 5,
-          "nom": "TOYOTA",
-          "created_at": "2026-03-15T08:04:00Z",
-          "updated_at": "2026-03-15T08:04:00Z"
-        }
-      },
-      "categorie": {
-        "id": 2,
-        "libelle": "SUV",
-        "tarif_jour_base": 75,
-        "created_at": "2026-03-15T08:31:00Z",
-        "updated_at": "2026-03-15T08:31:00Z"
-      },
-      "agence": {
-        "id": 3,
-        "nom": "Agence Marrakech Guéliz",
-        "adresse": "8 Rue Mohammed V",
-        "ville": "Marrakech",
-        "telephone": "0524000003",
-        "created_at": "2026-03-15T07:32:00Z",
-        "updated_at": "2026-03-15T07:32:00Z"
       }
     },
     {
