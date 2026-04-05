@@ -1,6 +1,14 @@
-import { Bell, Link } from "lucide-react";
+import { useState } from "react";
+import { Bell } from "lucide-react";
+import { Link } from "react-router-dom";
 import profileImg from "./img.jpg";
+import { useNotifications } from "../context/NotificationContext";
+import NotificationPanel from "../components/notifications/NotificationPanel";
+
 export default function Navbar() {
+  const { unreadCount } = useNotifications();
+  const [showPanel, setShowPanel] = useState(false);
+
   return (
     <nav className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -35,10 +43,29 @@ export default function Navbar() {
         {/* Right */}
         <div className="flex items-center gap-6">
 
-          {/* Notification */}
-          <button className="text-slate-400 hover:text-slate-600">
-            <Bell size={20} />
-          </button>
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              id="notification-bell"
+              onClick={() => setShowPanel((v) => !v)}
+              className="relative text-slate-400 hover:text-slate-600 transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white"
+                  style={{ animation: "pulse 2s infinite" }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showPanel && (
+              <NotificationPanel onClose={() => setShowPanel(false)} />
+            )}
+          </div>
 
           {/* Profile */}
           <div className="flex items-center gap-3 border-l pl-6">

@@ -1,8 +1,10 @@
 import { Clock3, FileText, MapPin, Phone, Route, Download } from "lucide-react";
 import { jsPDF } from "jspdf";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../../layout/Navbar";
+import { fetchReservationPlanning } from "../../services/reservation.js";
+import { useNotifications } from "../../context/NotificationContext";
 
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
@@ -52,13 +54,55 @@ async function imageUrlToDataUrl(imageUrl) {
   });
 }
 
+/** Aligné sur `GET /api/reservations/planning` (vert = disponible, rouge = indisponible). */
+const FALLBACK_PLANNING = {
+  monthLabel: "Mai 2026",
+  planningDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  planningDates: [29, 30, 1, 2, 3, 4, 5],
+  rows: [
+    {
+      label: "Haute saison : 120€/jour",
+      kind: "available",
+      segments: [
+        { start: 0, span: 5 },
+        { start: 5, span: 1, note: "Fermé" },
+        { start: 6, span: 1, note: "Fermé" },
+      ],
+    },
+    {
+      label: "Non disponible",
+      kind: "unavailable",
+      segments: [{ start: 0, span: 7 }],
+    },
+    {
+      label: "Haute saison : 120€/jour",
+      kind: "available",
+      segments: [
+        { start: 0, span: 5 },
+        { start: 5, span: 1, note: "Fermé" },
+        { start: 6, span: 1, note: "Fermé" },
+      ],
+    },
+  ],
+};
+
+const ROW_BAR_CLASS = {
+  available: "bg-emerald-500 text-white",
+  unavailable: "bg-rose-500 text-white",
+};
+
+const NOTE_CLOSED_CLASS = "bg-rose-200 text-rose-800";
+
 export default function Reservation() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { addNotification } = useNotifications();
   const bookingData = state?.bookingData ?? state;
   const [reservationStatus, setReservationStatus] = useState("Confirmed");
   const [showPickUpPlanning, setShowPickUpPlanning] = useState(false);
   const [selectedPlanningSlots, setSelectedPlanningSlots] = useState([]);
+  const [planningPayload, setPlanningPayload] = useState(null);
+  const [planningError, setPlanningError] = useState(null);
 
   const reservationId = bookingData?.reservationId || "#782910";
   const days = bookingData?.numberDays ?? 5;
@@ -77,36 +121,34 @@ export default function Reservation() {
   const pickUpFormatted = formatDate(bookingData?.pickUpDate, bookingData?.pickUpTime);
   const returnFormatted = formatDate(bookingData?.returnDate, bookingData?.returnTime);
   const isCancelled = reservationStatus === "Cancelled";
-  const planningDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const planningDates = [29, 30, 1, 2, 3, 4, 5];
-  const planningRows = [
-    {
-      label: "Haute saison : 120€/jour",
-      color: "bg-emerald-600",
-      textColor: "text-white",
-      segments: [
-        { start: 0, span: 5 },
-        { start: 5, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-        { start: 6, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-      ],
-    },
-    {
-      label: "Non disponible",
-      color: "bg-rose-600",
-      textColor: "text-white",
-      segments: [{ start: 0, span: 7 }],
-    },
-    {
-      label: "Haute saison : 120€/jour",
-      color: "bg-emerald-600",
-      textColor: "text-white",
-      segments: [
-        { start: 0, span: 5 },
-        { start: 5, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-        { start: 6, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-      ],
-    },
-  ];
+
+  const planningDays = planningPayload?.planningDays ?? FALLBACK_PLANNING.planningDays;
+  const planningDates = planningPayload?.planningDates ?? FALLBACK_PLANNING.planningDates;
+  const monthLabel = planningPayload?.monthLabel ?? FALLBACK_PLANNING.monthLabel;
+  const planningRows = useMemo(
+    () => planningPayload?.rows ?? FALLBACK_PLANNING.rows,
+    [planningPayload]
+  );
+
+  useEffect(() => {
+    if (!showPickUpPlanning) return;
+    let cancelled = false;
+    setPlanningError(null);
+    fetchReservationPlanning()
+      .then((data) => {
+        if (!cancelled) setPlanningPayload(data);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPlanningPayload(null);
+          setPlanningError("Impossible de charger le planning (données locales affichées).");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showPickUpPlanning]);
+
   const selectedSlotsLabel = selectedPlanningSlots
     .map((slot) => `${planningDays[slot.day]} ${planningDates[slot.day]}`)
     .join(", ");
@@ -114,6 +156,12 @@ export default function Reservation() {
   const handlePrint = () => window.print();
 
   const handleModify = () => {
+    addNotification(
+      "info",
+      "Modification en cours ✏️",
+      `Vous modifiez la réservation ${reservationId} pour ${vehicleName}.`,
+      reservationId
+    );
     if (bookingData?.vehicleId) {
       navigate(`/VehicleDetail/${bookingData.vehicleId}`);
       return;
@@ -196,7 +244,7 @@ export default function Reservation() {
 
   const togglePlanningSlot = (rowIndex, dayIndex) => {
     const row = planningRows[rowIndex];
-    if (!row || row.color !== "bg-emerald-600") return;
+    if (!row || row.kind !== "available") return;
 
     setSelectedPlanningSlots((prev) => {
       const exists = prev.some((slot) => slot.row === rowIndex && slot.day === dayIndex);
@@ -210,8 +258,41 @@ export default function Reservation() {
   const handleConfirm = () => {
     setReservationStatus("Confirmed");
     setShowPickUpPlanning(true);
+    addNotification(
+      "success",
+      "Réservation confirmée ✅",
+      `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
+      reservationId
+    );
   };
-  const handleCancel = () => setReservationStatus("Cancelled");
+
+  const handleReserveFromPlanning = () => {
+    setReservationStatus("Confirmed");
+    addNotification(
+      "success",
+      "Créneau réservé 📅",
+      `Créneaux sélectionnés pour ${vehicleName} : ${selectedSlotsLabel || "non spécifiés"}.`,
+      reservationId
+    );
+    navigate("/reservation-reussie", {
+      replace: true,
+      state: {
+        reservationId,
+        vehicleName,
+        selectedSlots: selectedSlotsLabel || null,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    setReservationStatus("Cancelled");
+    addNotification(
+      "error",
+      "Réservation annulée ❌",
+      `La réservation ${reservationId} pour ${vehicleName} a été annulée.`,
+      reservationId
+    );
+  };
 
   return (
     <>
@@ -277,7 +358,24 @@ export default function Reservation() {
                 <p className="text-[11px] text-slate-500">{pickUpFormatted}</p>
                 {showPickUpPlanning ? (
                   <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-                    <p className="mb-2 text-sm font-semibold text-red-500">Mai 2026</p>
+                    <p className="mb-2 text-sm font-semibold text-slate-700">{monthLabel}</p>
+                    {planningError ? (
+                      <p className="mb-2 text-[11px] text-amber-700">{planningError}</p>
+                    ) : null}
+                    <div className="mb-3 flex flex-wrap gap-3 text-[11px] text-slate-600">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-3 w-6 rounded-sm bg-emerald-500" />
+                        Disponible (sélection)
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-3 w-6 rounded-sm bg-rose-500" />
+                        Non disponible
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-3 w-6 rounded-sm bg-rose-200" />
+                        Fermé
+                      </span>
+                    </div>
                     <div className="grid grid-cols-7 overflow-hidden rounded-md border border-slate-200 text-center text-xs text-slate-500">
                       {planningDays.map((d) => (
                         <div key={d} className="border-r border-slate-200 bg-slate-50 py-2 font-semibold last:border-r-0">
@@ -306,7 +404,7 @@ export default function Reservation() {
                               return (
                                 <div
                                   key={idx}
-                                  className={`flex h-8 items-center justify-center rounded-sm text-[11px] font-semibold ${segment.noteColor}`}
+                                  className={`flex h-8 items-center justify-center rounded-sm text-[11px] font-semibold ${NOTE_CLOSED_CLASS}`}
                                 >
                                   {segment.note}
                                 </div>
@@ -314,7 +412,8 @@ export default function Reservation() {
                             }
 
                             const isSegmentStart = idx === segment.start;
-                            const isSelectable = row.color === "bg-emerald-600";
+                            const barClass = ROW_BAR_CLASS[row.kind] ?? ROW_BAR_CLASS.unavailable;
+                            const isSelectable = row.kind === "available";
                             const isSelected = selectedPlanningSlots.some(
                               (slot) => slot.row === rowIndex && slot.day === idx
                             );
@@ -326,8 +425,8 @@ export default function Reservation() {
                                 onClick={() => togglePlanningSlot(rowIndex, idx)}
                                 className={`flex h-8 items-center ${
                                   isSegmentStart ? "justify-start pl-1" : "justify-center"
-                                } rounded-sm ${row.color} ${row.textColor} text-[11px] font-semibold ${
-                                  isSelectable ? "cursor-pointer" : "cursor-not-allowed"
+                                } rounded-sm ${barClass} text-[11px] font-semibold ${
+                                  isSelectable ? "cursor-pointer" : "cursor-not-allowed opacity-90"
                                 } ${isSelected ? "ring-2 ring-blue-500" : ""}`}
                               >
                                 {isSegmentStart ? row.label : ""}
@@ -340,6 +439,13 @@ export default function Reservation() {
                     <p className="mt-3 text-xs text-slate-500">
                       Selected slots: {selectedSlotsLabel || "none"}
                     </p>
+                    <button
+                      type="button"
+                      onClick={handleReserveFromPlanning}
+                      className="mt-3 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto"
+                    >
+                      Réserver
+                    </button>
                   </div>
                 ) : (
                   <p className="mt-2 text-[10px] text-slate-400">

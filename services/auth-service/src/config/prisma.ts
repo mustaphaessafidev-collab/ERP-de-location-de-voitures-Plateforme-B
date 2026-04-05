@@ -1,5 +1,6 @@
-import * as dotenv from "dotenv";
-dotenv.config({ path: "prisma/.env" });
+import { loadEnv } from "./loadEnv";
+
+loadEnv();
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "@prisma/client";
 

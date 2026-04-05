@@ -1,6 +1,6 @@
-import dotenv from "dotenv";
+import { loadEnv } from "./loadEnv";
 
-dotenv.config({ path: "prisma/.env" });
+loadEnv();
 
 const toBoolean = (value: string | undefined, defaultValue: boolean) => {
   return value?.toLowerCase() === "true" ? true : value?.toLowerCase() === "false" ? false : defaultValue;
