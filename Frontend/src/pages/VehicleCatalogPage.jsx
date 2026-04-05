@@ -3,8 +3,6 @@ import Filters from "../components/cars/Filters";
 import Header from "../components/cars/Header";
 import Pagination from "../components/cars/Pagination";
 import VehicleGrid from "../components/cars/VehicleGrid";
-import Footer from "../layout/Footer";
-import Navbar from "../layout/Navbar";
 import vehiclesDB from "../fake-data/vehicules-api.json";
 
 export default function VehicleCatalogPage() {
@@ -73,39 +71,33 @@ export default function VehicleCatalogPage() {
   const paginatedVehicles = filteredVehicles.slice(startIndex, endIndex);
 
   return (
-    <>
-      <Navbar />
+    <div className="flex-1 bg-slate-50 px-4 py-6 md:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row">
+        <aside className="w-full flex-shrink-0 lg:w-[250px] xl:w-[270px]">
+          <Filters
+            selectedCategory={selectedCategory}
+            setSelectedCategory={handleCategoryChange}
+            selectedBrand={selectedBrand}
+            setSelectedBrand={handleBrandChange}
+            maxPrice={maxPrice}
+            setMaxPrice={handleMaxPriceChange}
+          />
+        </aside>
 
-      <div className="min-h-screen bg-slate-50 px-4 py-6 md:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row">
-          <aside className="w-full flex-shrink-0 lg:w-[250px] xl:w-[270px]">
-            <Filters
-              selectedCategory={selectedCategory}
-              setSelectedCategory={handleCategoryChange}
-              selectedBrand={selectedBrand}
-              setSelectedBrand={handleBrandChange}
-              maxPrice={maxPrice}
-              setMaxPrice={handleMaxPriceChange}
+        <main className="flex-1">
+          <div className="flex flex-col gap-6">
+            <Header total={filteredVehicles.length} />
+
+            <VehicleGrid vehicles={paginatedVehicles} />
+
+            <Pagination
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              totalPages={totalPages}
             />
-          </aside>
-
-          <main className="flex-1">
-            <div className="flex flex-col gap-6">
-              <Header total={filteredVehicles.length} />
-
-              <VehicleGrid vehicles={paginatedVehicles} />
-
-              <Pagination
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                totalPages={totalPages}
-              />
-            </div>
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
-
-      <Footer />
-    </>
+    </div>
   );
 }

@@ -5,8 +5,6 @@ import VehicleInfo from "../components/cars/VehicleDetails/VehicleInfo";
 import VehicleSpecifications from "../components/cars/VehicleDetails/VehicleSpecifications";
 import BookingCard from "../components/cars/VehicleDetails/BookingCard";
 import RelatedVehicles from "../components/cars/VehicleDetails/RelatedVehicles";
-import Navbar from "../layout/Navbar";
-
 export default function VehicleDetails() {
   const { id } = useParams();
 
@@ -33,7 +31,6 @@ export default function VehicleDetails() {
   if (!vehicle) {
     return (
       <>
-        <Navbar />
         <div className="p-6 text-center text-lg font-semibold text-slate-700">
           Véhicule introuvable
         </div>
@@ -43,8 +40,6 @@ export default function VehicleDetails() {
 
   return (
     <>
-      <Navbar />
-
       <section className="bg-slate-100 px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-4 text-xs text-slate-400">

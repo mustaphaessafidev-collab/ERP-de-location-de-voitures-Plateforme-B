@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { MailCheck } from 'lucide-react';
 import { authService } from '../services/auth';
+import { useAuth } from '../context/useAuth';
 
 export default function ValidateEmailPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { refreshAuth } = useAuth();
   const [otp, setOtp] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,8 +42,8 @@ export default function ValidateEmailPage() {
 
     try {
       await authService.validateEmail(otpCode);
-      // Validation successful, navigate to test success page
-      navigate('/test-success');
+      refreshAuth();
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Verification failed. Please check your code and try again.');
     } finally {
@@ -50,7 +52,7 @@ export default function ValidateEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-1 flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center text-indigo-600 mb-4">
           <MailCheck size={48} />

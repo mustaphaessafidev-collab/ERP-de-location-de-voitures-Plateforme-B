@@ -2,7 +2,6 @@ import { Clock3, FileText, MapPin, Phone, Route, Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Navbar from "../../layout/Navbar";
 
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
@@ -214,9 +213,7 @@ export default function Reservation() {
   const handleCancel = () => setReservationStatus("Cancelled");
 
   return (
-    <>
-      <Navbar />
-      <section className="min-h-[calc(100vh-64px)] bg-slate-100 px-4 py-6 md:px-6 lg:px-8">
+    <section className="min-h-[calc(100vh-4rem)] bg-slate-100 px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-5">
           <div className="text-[11px] text-slate-500">
             Dashboard / My Bookings /{" "}
@@ -526,6 +523,5 @@ export default function Reservation() {
           </div>
         </div>
       </section>
-    </>
   );
 }

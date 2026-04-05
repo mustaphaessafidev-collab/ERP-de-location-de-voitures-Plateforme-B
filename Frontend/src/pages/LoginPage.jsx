@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { authService } from '../services/auth';
+import { useAuth } from '../context/useAuth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshAuth } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -28,8 +31,11 @@ export default function LoginPage() {
 
     try {
       await authService.login(formData);
-      // Login successful, auth_token is saved, navigate to test success page
-      navigate('/test-success');
+      refreshAuth();
+      const raw = location.state?.from?.pathname;
+      const from =
+        raw && raw !== "/login" && raw !== "/register" ? raw : "/dashboard";
+      navigate(from, { replace: true });
     } catch (err) {
       const errorMsg = err.message || 'Login failed. Please check your credentials.';
       setError(errorMsg);
@@ -48,7 +54,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-1 flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account
