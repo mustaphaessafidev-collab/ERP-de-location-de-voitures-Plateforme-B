@@ -3,24 +3,24 @@ import React from 'react';
 export default function PersonalDetailsSection({ formData, setFormData }) {
   return (
     <div className="mb-4">
-      <h5 className="mb-3" style={{ fontSize: '1rem', fontWeight: 'bold', color: '#333' }}>Personal Details</h5>
+      <h5 className="mb-3 text-base font-bold text-gray-800">Personal Details</h5>
       
-      <div className="row mb-3">
-        <div className="col-md-6">
-          <label className="form-label" style={{ fontSize: '0.9rem', fontWeight: '500' }}>First Name</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
           <input
             type="text"
-            className="form-control"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.firstName}
             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
             placeholder="Enter first name"
           />
         </div>
-        <div className="col-md-6">
-          <label className="form-label" style={{ fontSize: '0.9rem', fontWeight: '500' }}>Last Name</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
           <input
             type="text"
-            className="form-control"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.lastName}
             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
             placeholder="Enter last name"
@@ -28,24 +28,26 @@ export default function PersonalDetailsSection({ formData, setFormData }) {
         </div>
       </div>
 
-      <div className="row">
-        <div className="col-md-6">
-          <label className="form-label" style={{ fontSize: '0.9rem', fontWeight: '500' }}>Email Address</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
           <input
             type="email"
-            className="form-control"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="Enter email address"
           />
         </div>
-        <div className="col-md-6">
-          <label className="form-label" style={{ fontSize: '0.9rem', fontWeight: '500' }}>Phone Number</label>
-          <div className="input-group">
-            <span className="input-group-text bg-light" style={{ color: '#666' }}>+1</span>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+          <div className="flex">
+            <span className="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
+              +1
+            </span>
             <input
               type="tel"
-              className="form-control"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="555-0123"

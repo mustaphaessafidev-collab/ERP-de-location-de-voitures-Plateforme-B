@@ -63,13 +63,13 @@ export default function DriveEaseProfile() {
       <Sidebar />
 
       <div style={{ flex: 1 }}>
-        <main className="container-lg" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-          <div className="card border-light">
-            <div className="card-body p-4">
+        <main className="container mx-auto px-4 py-8">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6">
               {loading ? (
-                <div className="text-center py-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Chargement du profil...</span>
+                <div className="flex justify-center items-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" role="status">
+                    <span className="sr-only">Chargement du profil...</span>
                   </div>
                 </div>
               ) : (
@@ -87,29 +87,28 @@ export default function DriveEaseProfile() {
                   />
 
                   {/* All sections rendered one under another */}
-                  <div id="personal" style={{ marginTop: '2rem' }}>
+                  <div id="personal" className="mt-8">
                     <PersonalDetailsSection formData={formData} setFormData={setFormData} />
                   </div>
 
                   <hr className="my-4" />
 
-                  <div id="license" style={{ marginTop: '2rem' }}>
+                  <div id="license" className="mt-8">
                     <DrivingLicenseSection formData={formData} setFormData={setFormData} />
                   </div>
 
                   <hr className="my-4" />
 
-                  <div id="preferences" style={{ marginTop: '2rem' }}>
+                  <div id="preferences" className="mt-8">
                     <SecurityPasswordSection formData={formData} setFormData={setFormData} />
                   </div>
 
                   {/* Action Buttons */}
                   <hr className="my-3" />
-                  <div className="d-flex justify-content-end">
+                  <div className="flex justify-end">
                     <button
                       onClick={handleSave}
-                      className="btn btn-primary d-flex align-items-center gap-2"
-                      style={{ fontSize: '0.9rem', fontWeight: '500' }}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2 text-sm font-medium"
                     >
                       <Save size={16} />
                       Save All Changes

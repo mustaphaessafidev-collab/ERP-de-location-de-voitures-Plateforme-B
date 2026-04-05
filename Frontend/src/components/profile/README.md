@@ -80,8 +80,7 @@ Frontend/src/components/profile/
 
 ### Dépendances
 - **React** : 19.2.0 (Hooks et composants fonctionnels)
-- **Bootstrap** : CSS pour le style (classes btn, card, form-control)
-- **Tailwind CSS** : 4.2.1 (styles personnalisés)
+- **Tailwind CSS** : 4.2.1 (styles principaux et utilitaires)
 - **Lucide React** : 0.577.0 (icônes)
 - **React Router** : 7.13.1 (navigation)
 
@@ -99,7 +98,7 @@ Frontend/src/components/profile/
 - **Import** : `import DriveEaseProfile from './components/profile/DriveEaseProfile'`
 
 ### Configuration
-- **Bootstrap CSS** : Importé dans `main.jsx`
+- **Tailwind CSS** : Importé et configuré dans le projet
 - **API Backend** : `http://localhost:8000/api/auth/profile`
 - **Authentification** : Token stocké dans localStorage
 
@@ -113,7 +112,7 @@ Frontend/src/components/profile/
 - [x] Navigation par onglets fonctionnelle
 - [x] Upload et prévisualisation d'images
 - [x] Validation de formulaires
-- [x] Style Bootstrap + Tailwind CSS
+- [x] Style Tailwind CSS moderne
 - [x] Route dans l'application React
 
 ### 🔄 Flux de Données

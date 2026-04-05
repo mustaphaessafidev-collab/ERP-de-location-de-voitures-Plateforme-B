@@ -15,80 +15,59 @@ export default function SecurityPasswordSection({ formData, setFormData }) {
 
   return (
     <div className="mb-4">
-      <h5 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#333', marginBottom: '1rem' }}>Security & Password</h5>
+      <h5 className="text-base font-bold text-gray-800 mb-4">Security & Password</h5>
 
-      <div className="row">
-        <div className="col-md-6">
-          <label className="form-label" style={{ fontSize: '0.9rem', fontWeight: '500' }}>Current Password</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
           <input
             type="password"
-            className="form-control"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.currentPassword}
             onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
           />
         </div>
 
-        <div className="col-md-6">
-          <label className="form-label" style={{ fontSize: '0.9rem', fontWeight: '500' }}>New Password</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
           <input
             type="password"
-            className="form-control"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.newPassword}
             onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
             placeholder="Min. 8 characters"
           />
-          <div className="mt-2" style={{ height: '4px', backgroundColor: '#e0e0e0', borderRadius: '2px', overflow: 'hidden' }}>
+          <div className="mt-2 h-1 bg-gray-200 rounded-full overflow-hidden">
             <div
+              className="h-full transition-all duration-300"
               style={{
-                height: '100%',
                 width: `${strengthPercentage}%`,
                 background: 'linear-gradient(to right, #dc3545, #ffc107, #28a745)',
-                transition: 'all 0.3s',
               }}
             ></div>
           </div>
         </div>
 
-        <div className="col-md-6" style={{ position: 'relative' }}>
+        <div className="relative">
           <button
-            className="btn btn-link p-0 text-primary d-flex align-items-center gap-1 mt-2"
+            className="flex items-center gap-1 mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
             onClick={() => setShowPasswordTips(!showPasswordTips)}
-            style={{ fontSize: '0.9rem', textDecoration: 'none' }}
           >
             <AlertCircle size={16} />
             Security Tips
           </button>
           {showPasswordTips && (
-            <div
-              className="border bg-light rounded p-3 position-absolute"
-              style={{
-                top: '100%',
-                right: 0,
-                width: '250px',
-                zIndex: 1000,
-                marginTop: '0.5rem',
-                backgroundColor: '#e7f3ff',
-                borderColor: '#b3d9ff',
-              }}
-            >
+            <div className="absolute top-full right-0 mt-2 w-64 bg-blue-50 border border-blue-200 rounded-lg p-3 z-10">
               {securityTips.map((tip, idx) => (
-                <div key={idx} className="d-flex align-items-start gap-2 mb-2">
-                  <div
-                    style={{
-                      minWidth: '20px',
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: tip.met ? '#d4edda' : '#e0e0e0',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {tip.met && <Check size={14} className="text-success" />}
+                <div key={idx} className="flex items-start gap-2 mb-2">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    tip.met ? 'bg-green-100' : 'bg-gray-200'
+                  }`}>
+                    {tip.met && <Check size={14} className="text-green-600" />}
                   </div>
-                  <small style={{ color: tip.met ? '#155724' : '#666', fontSize: '0.8rem' }}>
+                  <small className={`text-xs ${
+                    tip.met ? 'text-green-700' : 'text-gray-600'
+                  }`}>
                     {tip.text}
                   </small>
                 </div>
