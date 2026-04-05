@@ -1,7 +1,7 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { mapRoutesToRouter } from "../helpers/routeHelpers";
 import AppLayout from "../layouts/AppLayout";
-import RequireAuth from "./RequireAuth";
+import { guestRouteLoader, privateRouteLoader } from "./authLoaders";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ValidateEmailPage from "../pages/ValidateEmailPage";
@@ -12,11 +12,19 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 
-const publicRoutes = mapRoutesToRouter([
-  { path: "/", element: <Navigate to="/VehicleCatalogPage" replace /> },
+const guestAuthRoutes = mapRoutesToRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/validate-email", element: <ValidateEmailPage /> },
+]);
+
+const publicRoutes = mapRoutesToRouter([
+  { path: "/", element: <Navigate to="/VehicleCatalogPage" replace /> },
+  {
+    loader: guestRouteLoader,
+    element: <Outlet />,
+    children: guestAuthRoutes,
+  },
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
   
@@ -84,7 +92,8 @@ export function createAppRouter() {
       children: [
         ...publicRoutes,
         {
-          element: <RequireAuth />,
+          loader: privateRouteLoader,
+          element: <Outlet />,
           children: privateRoutes,
         },
         { path: "*", element: <NotFoundPage /> },

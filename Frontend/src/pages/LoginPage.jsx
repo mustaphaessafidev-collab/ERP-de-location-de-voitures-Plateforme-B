@@ -32,7 +32,9 @@ export default function LoginPage() {
     try {
       await authService.login(formData);
       refreshAuth();
-      const raw = location.state?.from?.pathname;
+      const fromQuery = new URLSearchParams(location.search).get("from");
+      const raw =
+        location.state?.from?.pathname ?? (fromQuery || undefined);
       const from =
         raw && raw !== "/login" && raw !== "/register" ? raw : "/dashboard";
       navigate(from, { replace: true });

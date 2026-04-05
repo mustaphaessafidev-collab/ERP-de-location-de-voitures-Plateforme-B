@@ -1,5 +1,17 @@
 import { NAV_ROUTE_DEFS, PRIVATE_ROUTE_MATCHERS } from "../router/routesConfig";
 
+/** Paths where the shell hides navbar/footer (guest auth flows). */
+export const GUEST_ONLY_LAYOUT_PATHS = ["/login", "/register", "/validate-email"];
+
+/**
+ * @param {string} pathname
+ */
+export function isGuestOnlyLayoutPath(pathname) {
+  return GUEST_ONLY_LAYOUT_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+}
+
 /**
  * @param {string} pathname
  * @param {string} routePath
@@ -33,12 +45,14 @@ export function isPrivateRoute(pathname) {
 
 /**
  * Normalizes route objects for createBrowserRouter (shallow; supports children).
- * @param {Array<{ path?: string; index?: boolean; element: import('react').ReactNode; children?: unknown[] }>} routeObjects
+ * @param {Array<{ path?: string; index?: boolean; element: import('react').ReactNode; children?: unknown[]; loader?: import('react-router-dom').LoaderFunction; id?: string }>} routeObjects
  */
 export function mapRoutesToRouter(routeObjects) {
-  return routeObjects.map(({ path, index, element, children }) => ({
+  return routeObjects.map(({ path, index, element, children, loader, id }) => ({
     ...(path != null ? { path } : {}),
     ...(index ? { index: true } : {}),
+    ...(loader != null ? { loader } : {}),
+    ...(id != null ? { id } : {}),
     element,
     ...(children?.length ? { children: mapRoutesToRouter(children) } : {}),
   }));
