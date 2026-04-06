@@ -29,8 +29,8 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await authService.register(formData);
-      navigate('/validate-email', { state: { email: formData.email } });
+      const res = await authService.register(formData);
+      navigate('/validate-email', { state: { email: formData.email, expiresAt: res.expiresAt } });
     } catch (err) {
       setError(err.message || 'L\'inscription a échoué. Veuillez réessayer.');
     } finally {

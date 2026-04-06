@@ -11,14 +11,63 @@ export default function ValidateEmailPage() {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isExpired, setIsExpired] = useState(false);
 
   const email = location.state?.email || 'votre email';
+  const expiresAt = location.state?.expiresAt;
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tokenFromUrl = params.get('token');
     if (tokenFromUrl) setOtp(tokenFromUrl);
   }, [location]);
+
+  // Timer logic
+  useEffect(() => {
+    if (!expiresAt) {
+      // Default to 60m if we don't have the exact time
+      const defaultExpiry = Date.now() + 60 * 60 * 1000;
+      startTimer(defaultExpiry);
+      return;
+    }
+    startTimer(new Date(expiresAt).getTime());
+  }, [expiresAt]);
+
+  const startTimer = (expiryTime) => {
+    const calculateTime = () => {
+      const now = Date.now();
+      const difference = expiryTime - now;
+
+      if (difference <= 0) {
+        setTimeLeft('00:00');
+        setIsExpired(true);
+        return false;
+      }
+
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+      
+      setTimeLeft(
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+      );
+      return true;
+    };
+
+    calculateTime();
+    const timer = setInterval(() => {
+      const active = calculateTime();
+      if (!active) clearInterval(timer);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  };
+
+  const handleResend = async () => {
+    // Note: In a real app, you'd call a resend endpoint here.
+    // For now, we'll just navigate back to register or show a message.
+    setError("Veuillez vous réinscrire pour recevoir un nouveau code.");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,10 +157,20 @@ export default function ValidateEmailPage() {
               </svg>
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-1">Vérifiez vos e-mails</h2>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-4">
               Nous avons envoyé un code à 6 chiffres à{' '}
               <span className="font-semibold text-gray-700">{email}</span>
             </p>
+
+            {/* Timer Badge */}
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase ${
+              isExpired ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
+            }`}>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{isExpired ? 'Code expiré' : `Expire dans: ${timeLeft || '--:--'}`}</span>
+            </div>
           </div>
 
           {/* Error */}
@@ -138,17 +197,19 @@ export default function ValidateEmailPage() {
                 placeholder="0  0  0  0  0  0"
                 className="w-full text-center text-2xl font-mono tracking-[0.5em] px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-300"
               />
-              <p className="mt-2 text-xs text-center text-gray-400">
-                Entrez le code à 6 chiffres reçu par email
+              <p className={`mt-2 text-xs text-center ${isExpired ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                {isExpired 
+                  ? "Ce code n'est plus valide. Veuillez en demander un nouveau." 
+                  : "Entrez le code à 6 chiffres reçu par email"}
               </p>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
-              disabled={isLoading || otp.length < 6}
+              disabled={isLoading || otp.length < 6 || isExpired}
               className={`w-full py-3 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2 ${
-                (isLoading || otp.length < 6) ? 'opacity-60 cursor-not-allowed' : ''
+                (isLoading || otp.length < 6 || isExpired) ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             >
               {isLoading ? (
@@ -166,14 +227,22 @@ export default function ValidateEmailPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Mauvaise adresse ?{' '}
-            <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-              Retour
-            </Link>
-            {' · '}
-            <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-              Se connecter
-            </Link>
+            {isExpired ? (
+              <button onClick={() => navigate('/register')} className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                Renvoyer un nouveau code
+              </button>
+            ) : (
+              <>
+                Mauvaise adresse ?{' '}
+                <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                  Retour
+                </Link>
+                {' · '}
+                <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                  Se connecter
+                </Link>
+              </>
+            )}
           </p>
         </div>
 
