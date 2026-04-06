@@ -48,3 +48,48 @@ model EmailVerificationToken {
   @@map("email_verification_tokens")
 }
 
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Reservation {
+  id             Int               @id @default(autoincrement())
+  publicId       String            @unique @map("public_id")
+  status         ReservationStatus @default(CONFIRMED)
+  customerEmail  String            @map("customer_email")
+  vehicleName    String            @map("vehicle_name")
+  vehicleId      Int?              @map("vehicle_id")
+  agency         String?
+  city           String?
+  pickUpLabel    String            @map("pick_up_label")
+  returnLabel    String            @map("return_label")
+  days           Int
+  totalAmount    Decimal           @map("total_amount") @db.Decimal(12, 2)
+  planningSlots  String?           @map("planning_slots")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  @@map("reservations")
+}
+
+enum NotificationType {
+  success
+  error
+  info
+  warning
+}
+
+model Notification {
+  id             Int              @id @default(autoincrement())
+  userEmail      String           @map("user_email")
+  type           NotificationType
+  title          String
+  message        String
+  reservationId  String?          @map("reservation_id")
+  isRead         Boolean          @default(false) @map("is_read")
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
