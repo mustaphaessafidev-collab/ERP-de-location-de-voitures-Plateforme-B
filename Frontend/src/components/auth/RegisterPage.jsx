@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../../services/auth';
+import registerBg from '../../assets/auth-imgs/luxury-car-hero.png';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function RegisterPage() {
       <div
         className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-10 overflow-hidden"
         style={{
-          backgroundImage: 'url(/luxury-car-hero.png)',
+          backgroundImage: `url(${registerBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center 40%',
         }}

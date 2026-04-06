@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../../services/auth';
 import { useAuth } from '../../context/useAuth';
+import loginBg from '../../assets/auth-imgs/luxury-car-hero1.png';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function LoginPage() {
       <div
         className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-10 overflow-hidden"
         style={{
-          backgroundImage: 'url(C:\\Users\\exe.DESKTOP-IH5AH8Q\\Desktop\\mundiaTPs\\S2\\Proc_Dev\\ERP-de-location-de-voitures-Plateforme-B\\Frontend\\src\\assets\\auth-imgs\\luxury-car-hero1.png)',
+          backgroundImage: `url(${loginBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

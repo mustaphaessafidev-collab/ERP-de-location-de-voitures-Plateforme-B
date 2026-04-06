@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { authService } from '../../services/auth';
 import { useAuth } from '../../context/useAuth';
+import validateBg from '../../assets/auth-imgs/luxury-car-hero.png';
 
 export default function ValidateEmailPage() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export default function ValidateEmailPage() {
       <div
         className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-10 overflow-hidden"
         style={{
-          backgroundImage: 'url(/luxury-car-hero.png)',
+          backgroundImage: `url(${validateBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center 40%',
         }}
