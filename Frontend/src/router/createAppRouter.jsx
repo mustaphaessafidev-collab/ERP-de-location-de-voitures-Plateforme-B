@@ -11,6 +11,8 @@ import ReservationPage from "../components/reservation/Reservation";
 import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import HomePage from "../pages/HomePage";
+
 
 const guestAuthRoutes = mapRoutesToRouter([
   { path: "/login", element: <LoginPage /> },
@@ -19,7 +21,7 @@ const guestAuthRoutes = mapRoutesToRouter([
 ]);
 
 const publicRoutes = mapRoutesToRouter([
-  { path: "/", element: <Navigate to="/VehicleCatalogPage" replace /> },
+  { path: "/", element: <HomePage/> },
   {
     loader: guestRouteLoader,
     element: <Outlet />,

@@ -88,7 +88,7 @@ export default function Filters({
           </p>
 
           <span className="text-sm font-semibold text-blue-600">
-            0€ - {maxPrice}€
+            0 - {maxPrice}€
           </span>
         </div>
 
