@@ -6,6 +6,8 @@ import VehicleInfo from "../components/cars/VehicleDetails/VehicleInfo";
 import VehicleSpecifications from "../components/cars/VehicleDetails/VehicleSpecifications";
 import RentalConditions from "../components/cars/VehicleDetails/RentalConditions";
 import BookingCard from "../components/cars/VehicleDetails/BookingCard";
+import RelatedVehicles from "../components/cars/VehicleDetails/RelatedVehicles";
+
 
 
 
@@ -57,6 +59,8 @@ export default function VehicleDetails() {
               <BookingCard vehicle={vehicle} />
             </div>
           </div>
+            <RelatedVehicles currentVehicle={vehicle} />
+
         </div>
       </section>
     </>
