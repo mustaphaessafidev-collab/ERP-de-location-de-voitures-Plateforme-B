@@ -3,7 +3,6 @@ Bug,
 Calendar, 
 Car, 
 LayoutDashboard,
-CircleDashed,
 House
 } from "lucide-react";
 
@@ -11,7 +10,6 @@ House
 export const NAVBAR_ICON_MAP = {
   Car,
   LayoutDashboard,
-  Calendar,
-  CircleDashed,  
+  Calendar,  
   House 
 };
