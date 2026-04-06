@@ -37,7 +37,7 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
             onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
             placeholder="Enter your current password to change it"
             autoComplete="current-password"
-            key="current-password-field"
+            key="current-password-input"
           />
         </div>
 
@@ -46,10 +46,11 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
           <input
             type="password"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={formData.newPassword}
+            value=""
             onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
             placeholder="Min. 8 characters"
             autoComplete="new-password"
+            key="new-password-input"
           />
           <div className="mt-2 h-1 bg-gray-200 rounded-full overflow-hidden">
             <div
@@ -67,10 +68,11 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
           <input
             type="password"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={formData.confirmPassword || ''}
+            value=""
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
             placeholder="Confirm new password"
             autoComplete="new-password"
+            key="confirm-password-input"
           />
         </div>
 
