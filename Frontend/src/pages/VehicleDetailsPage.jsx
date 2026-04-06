@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import vehiclesDB from "../fake-data/vehicules-api.json";
 import VehicleImage from "../components/cars/VehicleDetails/VehicleImage";
 import VehicleInfo from "../components/cars/VehicleDetails/VehicleInfo";
+import VehicleSpecifications from "../components/cars/VehicleDetails/VehicleSpecifications";
+import RentalConditions from "../components/cars/VehicleDetails/RentalConditions";
 
 
 
@@ -46,6 +48,8 @@ export default function VehicleDetails() {
             <div className="space-y-5 lg:col-span-2">
               <VehicleImage image={vehicle.image} />
               <VehicleInfo vehicle={vehicle} />
+              <VehicleSpecifications vehicle={vehicle} />
+              <RentalConditions/>
 
             </div>
           </div>
