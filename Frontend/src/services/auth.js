@@ -11,6 +11,20 @@ const apiClient = axios.create({
   },
 });
 
+// Add request interceptor to include auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Auth Service Object
 export const authService = {
   /**
@@ -67,6 +81,39 @@ export const authService = {
     } catch (error) {
        if (error.response && error.response.data) {
         throw new Error(error.response.data.message || "Validation failed");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get user profile from API
+   */
+  async getProfile() {
+    try {
+      const response = await apiClient.get("/auth/profile");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+      // Fallback to localStorage if API fails
+      return this.getCurrentUser();
+    }
+  },
+
+  /**
+   * Update user password
+   */
+  async updatePassword(currentPassword, newPassword, email) {
+    try {
+      const response = await apiClient.put("/auth/update-password", {
+        email,
+        currentPassword,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.message || "Password update failed");
       }
       throw error;
     }

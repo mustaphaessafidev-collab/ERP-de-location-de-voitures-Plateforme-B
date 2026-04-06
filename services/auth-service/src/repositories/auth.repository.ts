@@ -18,6 +18,13 @@ export const authRepository = {
     return row as User | null;
   },
 
+  async findById(id: number): Promise<User | null> {
+    const row = await prisma.user.findUnique({
+      where: { id },
+    });
+    return row as User | null;
+  },
+
   async create(data: CreateUserInput): Promise<User> {
     const row = await prisma.user.create({
       data: {

@@ -4,7 +4,8 @@ const toBoolean = (value: string | undefined, defaultValue: boolean) => {
 };
 
 const toNumber = (value: string | undefined, defaultValue: number) => {
-  return Number(value) ?? defaultValue;
+  const num = Number(value);
+  return isNaN(num) ? defaultValue : num;
 };
 
 const toString = (value: string | undefined, defaultValue: string) => {

@@ -158,4 +158,14 @@ export const authService = {
     await authRepository.updatePasswordByUserId(user.id, hashed);
     return { message: "Password updated successfully" };
   },
+
+  async updatePasswordForAuthenticatedUser(userId: number, payload: { currentPassword: string; newPassword: string }) {
+    const user = await authRepository.findById(userId);
+    if (!user) throw new InvalidCredentialsError();
+    const ok = await comparePassword(payload.currentPassword, user.password);
+    if (!ok) throw new InvalidCredentialsError();
+    const hashed = await hashPassword(payload.newPassword);
+    await authRepository.updatePasswordByUserId(userId, hashed);
+    return { message: "Password updated successfully" };
+  },
 };

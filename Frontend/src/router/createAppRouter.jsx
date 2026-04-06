@@ -12,6 +12,7 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
+import DriveEaseProfile from "../components/profile/DriveEaseProfile";
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -63,12 +64,7 @@ const privateRoutes = mapRoutesToRouter([
   },
   {
     path: "/profile",
-    element: (
-      <PlaceholderPage
-        title="Profil"
-        message="Vous pourrez bientôt modifier vos informations personnelles sur cette page."
-      />
-    ),
+    element: <DriveEaseProfile />,
   },
   {
     path: "/settings",
