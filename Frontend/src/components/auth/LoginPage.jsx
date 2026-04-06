@@ -34,7 +34,7 @@ export default function LoginPage() {
       const from = raw && raw !== '/login' && raw !== '/register' ? raw : '/dashboard';
       navigate(from, { replace: true });
     } catch (err) {
-      const errorMsg = err.message || 'Login failed. Please check your credentials.';
+      const errorMsg = err.message || 'La connexion a échoué. Veuillez vérifier vos identifiants.';
       setError(errorMsg);
       if (errorMsg.toLowerCase().includes('email no') || errorMsg.toLowerCase().includes('validate')) {
         setNeedsValidation(true);
@@ -90,10 +90,10 @@ export default function LoginPage() {
         {/* Hero text */}
         <div className="relative z-10">
           <h1 className="text-5xl font-bold text-white leading-tight mb-4">
-            Experience the road<br /> like never before.
+            Vivez la route<br /> comme jamais auparavant.
           </h1>
           <p className="text-gray-400 text-base max-w-xs leading-relaxed" style={{color: "gray"}}>
-            Access our exclusive fleet of luxury vehicles and manage your bookings with our premium ERP portal.
+            Accédez à notre flotte exclusive de véhicules de luxe et gérez vos réservations avec notre portail premium.
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
             <img src="https://i.pravatar.cc/150?img=48" alt="avatar" className="w-10 h-10 rounded-full border-2 border-white object-cover flex-shrink-0" />
           </div>
           <p className="text-white text-sm font-medium">
-            Trusted by <span className="font-bold">2k+</span> owners.
+            Approuvé par <span className="font-bold">2k+</span> propriétaires.
           </p>
         </div>
       </div>
@@ -117,8 +117,8 @@ export default function LoginPage() {
 
           {/* Heading */}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-1">Welcome back</h2>
-            <p className="text-gray-500 text-sm">Please enter your details to access your account.</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-1">Bon retour</h2>
+            <p className="text-gray-500 text-sm">Veuillez entrer vos coordonnées pour accéder à votre compte.</p>
           </div>
 
           {/* Tabs */}
@@ -132,7 +132,7 @@ export default function LoginPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Sign In
+              Connexion
             </button>
             <Link
               to="/register"
@@ -143,7 +143,7 @@ export default function LoginPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Sign Up
+              Inscription
             </Link>
           </div>
 
@@ -157,7 +157,7 @@ export default function LoginPage() {
                   onClick={() => navigate('/validate-email', { state: { email: formData.email } })}
                   className="block mt-1 font-semibold text-blue-600 hover:text-blue-500 underline"
                 >
-                  Click here to verify your email
+                  Cliquez ici pour vérifier votre email
                 </button>
               )}
             </div>
@@ -167,7 +167,7 @@ export default function LoginPage() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email Address
+                Adresse Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -191,10 +191,10 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                  Mot de passe
                 </label>
                 <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                  Forgot password?
+                  Mot de passe oublié ?
                 </a>
               </div>
               <div className="relative">
@@ -232,7 +232,7 @@ export default function LoginPage() {
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
               />
               <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer select-none">
-                Remember me for 30 days
+                Se souvenir de moi pendant 30 jours
               </label>
             </div>
 
@@ -250,28 +250,28 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Signing in...
+                  Connexion...
                 </span>
               ) : (
-                'Sign In'
+                'Se connecter'
               )}
             </button>
           </form>
 
           {/* Create account link */}
           <p className="mt-6 text-center text-sm text-gray-500">
-            Don't have an account?{' '}
+            Vous n'avez pas de compte ?{' '}
             <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-              Create an account
+              Créer un compte
             </Link>
           </p>
         </div>
 
         {/* Footer */}
         <div className="flex justify-center gap-6 text-xs text-gray-400 pt-4">
-          <a href="#" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-gray-600 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-gray-600 transition-colors">Contact Support</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Politique de confidentialité</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Conditions d'utilisation</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Support</a>
         </div>
       </div>
     </div>

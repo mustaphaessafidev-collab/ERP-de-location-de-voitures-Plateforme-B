@@ -8,7 +8,6 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nom_complet: '',
-    cin: '',
     telephone: '',
     email: '',
     adresse: '',
@@ -25,15 +24,15 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!agreed) { setError('You must agree to the Terms of Service and Privacy Policy.'); return; }
-    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match.'); return; }
+    if (!agreed) { setError('Vous devez accepter les conditions d\'utilisation et la politique de confidentialité.'); return; }
+    if (formData.password !== formData.confirmPassword) { setError('Les mots de passe ne correspondent pas.'); return; }
     setIsLoading(true);
     setError(null);
     try {
       await authService.register(formData);
       navigate('/validate-email', { state: { email: formData.email } });
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || 'L\'inscription a échoué. Veuillez réessayer.');
     } finally {
       setIsLoading(false);
     }
@@ -84,10 +83,10 @@ export default function RegisterPage() {
         {/* Hero text */}
         <div className="relative z-10">
           <h1 className="text-5xl font-bold text-white leading-tight mb-4">
-            Experience the road<br />like never before.
+            Vivez la route<br />comme jamais auparavant.
           </h1>
           <p className="text-gray-400 text-base max-w-xs leading-relaxed">
-            Access the world's most exclusive fleet with our premium management interface.
+            Accédez à la flotte la plus exclusive au monde avec notre interface de gestion premium.
           </p>
         </div>
 
@@ -100,7 +99,7 @@ export default function RegisterPage() {
             <img src="https://i.pravatar.cc/150?img=47" alt="avatar" className="w-10 h-10 rounded-full border-2 border-white object-cover flex-shrink-0" />
           </div>
           <p className="text-white text-sm font-medium">
-            Join <span className="font-bold">10,000+</span> premium drivers worldwide.
+            Rejoignez plus de <span className="font-bold">10 000</span> conducteurs premium.
           </p>
         </div>
       </div>
@@ -112,8 +111,8 @@ export default function RegisterPage() {
 
           {/* Heading */}
           <div className="mb-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Create an account</h2>
-            <p className="text-gray-500 text-sm">Enter your details to join the elite fleet.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Créer un compte</h2>
+            <p className="text-gray-500 text-sm">Entrez vos coordonnées pour rejoindre la flotte d'élite.</p>
           </div>
 
           {/* Tabs */}
@@ -122,13 +121,13 @@ export default function RegisterPage() {
               to="/login"
               className="flex-1 py-2 text-sm font-medium rounded-lg text-center text-gray-500 hover:text-gray-700 transition-all"
             >
-              Sign In
+              Connexion
             </Link>
             <button
               type="button"
               className="flex-1 py-2 text-sm font-medium rounded-lg bg-white text-blue-600 shadow-sm border border-gray-200 transition-all"
             >
-              Sign Up
+              Inscription
             </button>
           </div>
 
@@ -143,7 +142,7 @@ export default function RegisterPage() {
             {/* Full Name */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Full Name
+                Nom complet
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -152,52 +151,16 @@ export default function RegisterPage() {
                 <input
                   name="nom_complet" type="text" required
                   value={formData.nom_complet} onChange={handleChange}
-                  placeholder="Full Name"
+                  placeholder="Votre nom complet"
                   className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
                 />
-              </div>
-            </div>
-
-            {/* CIN & Phone side by side */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  CIN
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Briefcase className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    name="cin" type="text" required
-                    value={formData.cin} onChange={handleChange}
-                    placeholder="XX123456"
-                    className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Phone
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Phone className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    name="telephone" type="tel" required
-                    value={formData.telephone} onChange={handleChange}
-                    placeholder="+212 6XX XXX XXX"
-                    className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                  />
-                </div>
               </div>
             </div>
 
             {/* Email */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Email Address
+                Adresse Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -206,7 +169,7 @@ export default function RegisterPage() {
                 <input
                   name="email" type="email" autoComplete="email" required
                   value={formData.email} onChange={handleChange}
-                  placeholder="example@email.com"
+                  placeholder="exemple@email.com"
                   className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
                 />
               </div>
@@ -215,7 +178,7 @@ export default function RegisterPage() {
             {/* Password */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Password
+                Mot de passe
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -237,7 +200,7 @@ export default function RegisterPage() {
             {/* Confirm Password */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                Confirm Password
+                Confirmer le mot de passe
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -263,10 +226,10 @@ export default function RegisterPage() {
                 className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer flex-shrink-0"
               />
               <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer leading-relaxed">
-                By creating an account, you agree to our{' '}
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">Terms of Service</a>
-                {' '}and{' '}
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">Privacy Policy</a>.
+                En créant un compte, vous acceptez nos{' '}
+                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">Conditions d'utilisation</a>
+                {' '}et notre{' '}
+                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">Politique de confidentialité</a>.
               </label>
             </div>
 
@@ -284,28 +247,28 @@ export default function RegisterPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Creating account...
+                  Création du compte...
                 </>
               ) : (
-                <>Create Account →</>
+                <>Créer un compte →</>
               )}
             </button>
           </form>
 
           {/* Login link */}
           <p className="mt-4 text-center text-sm text-gray-500">
-            Already have an account?{' '}
+            Déjà un compte ?{' '}
             <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-              Sign In
+              Connexion
             </Link>
           </p>
         </div>
 
         {/* Footer */}
         <div className="flex justify-center gap-6 text-xs text-gray-400 pt-4">
-          <a href="#" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-gray-600 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-gray-600 transition-colors">Contact Support</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Politique de confidentialité</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Conditions d'utilisation</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Support</a>
         </div>
       </div>
     </div>

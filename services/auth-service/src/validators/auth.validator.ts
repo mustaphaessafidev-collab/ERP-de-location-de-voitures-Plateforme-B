@@ -20,8 +20,8 @@ const emailSchema = z
 
 export const registerSchema = z.object({
   nom_complet: z.string().min(1, "Full name is required").max(200),
-  cin: z.string().min(1, "CIN is required").max(50),
-  telephone: z.string().min(1, "Phone is required").max(20),
+  cin: z.string().max(50).optional(),
+  telephone: z.string().max(20).optional(),
   email: emailSchema,
   adresse: z.string().max(500).optional(),
   password: passwordSchema,

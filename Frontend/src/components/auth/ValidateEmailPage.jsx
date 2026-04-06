@@ -12,7 +12,7 @@ export default function ValidateEmailPage() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const email = location.state?.email || 'your email';
+  const email = location.state?.email || 'votre email';
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -27,7 +27,7 @@ export default function ValidateEmailPage() {
 
   const submitValidation = async (otpCode) => {
     if (!otpCode || otpCode.length < 6) {
-      setError('Please enter a valid 6-digit code');
+      setError('Veuillez entrer un code valide à 6 chiffres');
       return;
     }
     setIsLoading(true);
@@ -37,7 +37,7 @@ export default function ValidateEmailPage() {
       refreshAuth();
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Verification failed. Please check your code and try again.');
+      setError(err.message || 'La vérification a échoué. Veuillez vérifier votre code et réessayer.');
     } finally {
       setIsLoading(false);
     }
@@ -88,10 +88,10 @@ export default function ValidateEmailPage() {
         {/* Hero text */}
         <div className="relative z-10">
           <h1 className="text-5xl font-bold text-white leading-tight mb-4">
-            One step away<br />from the road.
+            À une étape<br />de la route.
           </h1>
           <p className="text-gray-400 text-base max-w-xs leading-relaxed">
-            Verify your email to unlock full access to our premium fleet management portal.
+            Vérifiez votre email pour débloquer l'accès complet à notre portail de gestion de flotte premium.
           </p>
         </div>
       </div>
@@ -107,9 +107,9 @@ export default function ValidateEmailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-1">Check your email</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-1">Vérifiez vos e-mails</h2>
             <p className="text-gray-500 text-sm">
-              We sent a 6-digit code to{' '}
+              Nous avons envoyé un code à 6 chiffres à{' '}
               <span className="font-semibold text-gray-700">{email}</span>
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function ValidateEmailPage() {
             {/* OTP input */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Verification Code
+                Code de vérification
               </label>
               <input
                 id="otp"
@@ -139,7 +139,7 @@ export default function ValidateEmailPage() {
                 className="w-full text-center text-2xl font-mono tracking-[0.5em] px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-300"
               />
               <p className="mt-2 text-xs text-center text-gray-400">
-                Enter the 6-digit code sent to your inbox
+                Entrez le code à 6 chiffres reçu par email
               </p>
             </div>
 
@@ -157,31 +157,31 @@ export default function ValidateEmailPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Verifying...
+                  Vérification...
                 </>
               ) : (
-                'Verify Email →'
+                'Vérifier l\'email →'
               )}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Wrong address?{' '}
+            Mauvaise adresse ?{' '}
             <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-              Go back
+              Retour
             </Link>
             {' · '}
             <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-              Sign in instead
+              Se connecter
             </Link>
           </p>
         </div>
 
         {/* Footer */}
         <div className="flex justify-center gap-6 text-xs text-gray-400 pt-4">
-          <a href="#" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-gray-600 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-gray-600 transition-colors">Contact Support</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Politique de confidentialité</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Conditions d'utilisation</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Support</a>
         </div>
       </div>
     </div>

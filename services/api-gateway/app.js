@@ -16,14 +16,10 @@ app.get("/", (req, res) => {
 });
 
 app.use(
-  "/api/auth",
   createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      "^/api/auth": "/api/auth",
-    },
-    ignorePath: false,
+    pathFilter: ["/api"],
   })
 );
 
