@@ -1,4 +1,4 @@
-import { Clock3, FileText, MapPin, Phone, Route, Download } from "lucide-react";
+import { Clock3, MapPin, Phone, Route } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -228,20 +228,6 @@ export default function Reservation() {
     doc.save(`invoice-${reservationId.replace("#", "")}.pdf`);
   };
 
-  const handleDownloadDocument = (name, status) => {
-    if (status === "generating") return;
-    downloadPdf({
-      filename: `${name}-${reservationId.replace("#", "")}.pdf`,
-      title: name.replaceAll("_", " "),
-      lines: [
-        `Reservation: ${reservationId}`,
-        `Vehicle: ${vehicleName}`,
-        `Customer document status: ${status}`,
-        `Generated: ${new Date().toLocaleString()}`,
-      ],
-    });
-  };
-
   const togglePlanningSlot = (rowIndex, dayIndex) => {
     const row = planningRows[rowIndex];
     if (!row || row.kind !== "available") return;
@@ -344,6 +330,8 @@ export default function Reservation() {
             <p className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
               Rental Progress
             </p>
+            
+            {/* LIGNE DU TEMPS (En haut) */}
             <div className="relative grid grid-cols-3 gap-3 text-sm">
               <div className="absolute left-[12%] right-[12%] top-4 h-[2px] bg-slate-200" />
               <div className="absolute left-[12%] top-4 h-[2px] w-[38%] bg-blue-500" />
@@ -356,108 +344,119 @@ export default function Reservation() {
                 <div className="mb-3 h-3 w-3 rounded-full border-2 border-blue-500 bg-white" />
                 <p className="text-xs font-semibold text-slate-800">Pick-up Expected</p>
                 <p className="text-[11px] text-slate-500">{pickUpFormatted}</p>
-                {showPickUpPlanning ? (
-                  <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-                    <p className="mb-2 text-sm font-semibold text-slate-700">{monthLabel}</p>
-                    {planningError ? (
-                      <p className="mb-2 text-[11px] text-amber-700">{planningError}</p>
-                    ) : null}
-                    <div className="mb-3 flex flex-wrap gap-3 text-[11px] text-slate-600">
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-3 w-6 rounded-sm bg-emerald-500" />
-                        Disponible (sélection)
-                      </span>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-3 w-6 rounded-sm bg-rose-500" />
-                        Non disponible
-                      </span>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-3 w-6 rounded-sm bg-rose-200" />
-                        Fermé
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-7 overflow-hidden rounded-md border border-slate-200 text-center text-xs text-slate-500">
-                      {planningDays.map((d) => (
-                        <div key={d} className="border-r border-slate-200 bg-slate-50 py-2 font-semibold last:border-r-0">
-                          {d}
-                        </div>
-                      ))}
-                      {planningDates.map((d) => (
-                        <div key={d} className="border-r border-t border-slate-200 py-2 text-slate-700 last:border-r-0">
-                          {d}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      {planningRows.map((row, rowIndex) => (
-                        <div key={`${row.label}-${rowIndex}`} className="grid grid-cols-7 gap-1.5">
-                          {Array.from({ length: 7 }).map((_, idx) => {
-                            const segment = row.segments.find(
-                              (seg) => idx >= seg.start && idx < seg.start + seg.span
-                            );
-
-                            if (!segment) {
-                              return <div key={idx} className="h-8 rounded-sm bg-slate-100" />;
-                            }
-
-                            if (segment.note) {
-                              return (
-                                <div
-                                  key={idx}
-                                  className={`flex h-8 items-center justify-center rounded-sm text-[11px] font-semibold ${NOTE_CLOSED_CLASS}`}
-                                >
-                                  {segment.note}
-                                </div>
-                              );
-                            }
-
-                            const isSegmentStart = idx === segment.start;
-                            const barClass = ROW_BAR_CLASS[row.kind] ?? ROW_BAR_CLASS.unavailable;
-                            const isSelectable = row.kind === "available";
-                            const isSelected = selectedPlanningSlots.some(
-                              (slot) => slot.row === rowIndex && slot.day === idx
-                            );
-
-                            return (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => togglePlanningSlot(rowIndex, idx)}
-                                className={`flex h-8 items-center ${
-                                  isSegmentStart ? "justify-start pl-1" : "justify-center"
-                                } rounded-sm ${barClass} text-[11px] font-semibold ${
-                                  isSelectable ? "cursor-pointer" : "cursor-not-allowed opacity-90"
-                                } ${isSelected ? "ring-2 ring-blue-500" : ""}`}
-                              >
-                                {isSegmentStart ? row.label : ""}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500">
-                      Selected slots: {selectedSlotsLabel || "none"}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleReserveFromPlanning}
-                      className="mt-3 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto"
-                    >
-                      Réserver
-                    </button>
-                  </div>
-                ) : (
-                  <p className="mt-2 text-[10px] text-slate-400">
-                    Click "Confirm Reservation" to open the selectable planning table.
-                  </p>
-                )}
               </div>
               <div className="relative">
                 <div className="mb-3 h-3 w-3 rounded-full border border-slate-300 bg-white" />
                 <p className="text-xs font-semibold text-slate-400">Return Scheduled</p>
                 <p className="text-[11px] text-slate-400">{returnFormatted}</p>
               </div>
+            </div>
+
+            {/* TABLEAU DE PLANIFICATION (En dessous, prend toute la largeur) */}
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              {showPickUpPlanning ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm">
+                  <p className="mb-4 text-xl font-bold text-slate-800">{monthLabel}</p>
+                  {planningError ? (
+                    <p className="mb-3 text-sm font-medium text-amber-700">{planningError}</p>
+                  ) : null}
+                  
+                  {/* Légende Agrandie */}
+                  <div className="mb-6 flex flex-wrap gap-5 text-sm font-medium text-slate-600">
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-5 w-10 rounded bg-emerald-500" />
+                      Disponible (sélection)
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-5 w-10 rounded bg-rose-500" />
+                      Non disponible
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-5 w-10 rounded bg-rose-200" />
+                      Fermé
+                    </span>
+                  </div>
+
+                  {/* En-tête du tableau Agrandie */}
+                  <div className="grid grid-cols-7 overflow-hidden rounded-lg border border-slate-300 text-center text-sm shadow-sm">
+                    {planningDays.map((d) => (
+                      <div key={d} className="border-r border-slate-300 bg-white py-3 font-bold text-slate-800 last:border-r-0">
+                        {d}
+                      </div>
+                    ))}
+                    {planningDates.map((d) => (
+                      <div key={d} className="border-r border-t border-slate-300 bg-white py-3 text-slate-700 last:border-r-0">
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Lignes du tableau Agrandies */}
+                  <div className="mt-4 space-y-3">
+                    {planningRows.map((row, rowIndex) => (
+                      <div key={`${row.label}-${rowIndex}`} className="grid grid-cols-7 gap-2">
+                        {Array.from({ length: 7 }).map((_, idx) => {
+                          const segment = row.segments.find(
+                            (seg) => idx >= seg.start && idx < seg.start + seg.span
+                          );
+
+                          if (!segment) {
+                            return <div key={idx} className="h-12 rounded-md bg-slate-200/50" />;
+                          }
+
+                          if (segment.note) {
+                            return (
+                              <div
+                                key={idx}
+                                className={`flex h-12 items-center justify-center rounded-md text-xs font-bold shadow-sm ${NOTE_CLOSED_CLASS}`}
+                              >
+                                {segment.note}
+                              </div>
+                            );
+                          }
+
+                          const isSegmentStart = idx === segment.start;
+                          const barClass = ROW_BAR_CLASS[row.kind] ?? ROW_BAR_CLASS.unavailable;
+                          const isSelectable = row.kind === "available";
+                          const isSelected = selectedPlanningSlots.some(
+                            (slot) => slot.row === rowIndex && slot.day === idx
+                          );
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => togglePlanningSlot(rowIndex, idx)}
+                              className={`flex h-12 items-center transition-all overflow-hidden whitespace-nowrap ${
+                                isSegmentStart ? "justify-start pl-3" : "justify-center"
+                              } rounded-md ${barClass} text-sm font-bold shadow-sm ${
+                                isSelectable ? "cursor-pointer hover:brightness-110" : "cursor-not-allowed opacity-90"
+                              } ${isSelected ? "ring-4 ring-blue-500 ring-offset-1" : ""}`}
+                            >
+                              {isSegmentStart ? row.label : ""}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <p className="mt-6 text-sm font-medium text-slate-500">
+                    Selected slots: <span className="text-slate-800">{selectedSlotsLabel || "none"}</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleReserveFromPlanning}
+                    className="mt-4 w-full rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-blue-700 sm:w-auto"
+                  >
+                    Réserver les créneaux
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500 text-center py-6 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+                  Cliquez sur "Confirm Reservation" en bas de page pour afficher le planning interactif.
+                </p>
+              )}
             </div>
           </div>
 
@@ -573,41 +572,6 @@ export default function Reservation() {
                   </button>
                 </div>
               </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-semibold text-slate-800">Documents</h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleDownloadDocument("Rental_Agreement", "signed")}
-                    className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText size={14} className="text-red-500" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-700">Rental_Agreem...</p>
-                        <p className="text-[10px] text-slate-400">1.2 MB - Signed</p>
-                      </div>
-                    </div>
-                    <Download size={14} className="text-blue-600" />
-                  </button>
-                  <button
-                    onClick={() => handleDownloadDocument("Inspection_Report", "generating")}
-                    className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText size={14} className="text-red-500" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-700">Inspection_Rep...</p>
-                        <p className="text-[10px] text-slate-400">- MB - Generating...</p>
-                      </div>
-                    </div>
-                    <Download size={14} className="text-slate-300" />
-                  </button>
-                </div>
-                <p className="mt-3 text-[10px] text-slate-400">
-                  * Inspection report will be available after the vehicle pick-up is finalized at the counter.
-                </p>
-              </div>
             </aside>
           </div>
 
@@ -618,13 +582,13 @@ export default function Reservation() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleConfirm}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700"
+                className="rounded-md border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Confirm Reservation
               </button>
               <button
                 onClick={handleCancel}
-                className="rounded-md border border-rose-200 px-4 py-2 font-semibold text-rose-600"
+                className="rounded-md border border-rose-200 px-4 py-2 font-semibold text-rose-600 hover:bg-rose-50"
               >
                 Cancel Reservation
               </button>
