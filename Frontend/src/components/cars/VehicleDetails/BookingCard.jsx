@@ -65,7 +65,7 @@ export default function BookingCard({ vehicle }) {
     };
 
     navigate("/booking-review", {
-      state: { bookingData },
+      state: bookingData,
     });
   };
 

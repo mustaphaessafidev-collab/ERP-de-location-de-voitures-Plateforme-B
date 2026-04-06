@@ -1,4 +1,7 @@
-import { Globe, Share2, CarFront } from "lucide-react";
+import { Globe, Share2 } from "lucide-react";
+import AppIcon from "../AppIcon";
+
+const BRAND = "DriveEase ERP";
 
 export default function Footer() {
   return (
@@ -7,57 +10,52 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2">
-              <CarFront className="h-5 w-5 text-blue-600" />
-              <h2 className="text-2xl font-bold text-slate-800">
-                ERPCarRental
-              </h2>
+              <AppIcon />
             </div>
 
             <p className="mt-4 max-w-sm text-base leading-7 text-slate-400">
-              The premium enterprise platform for luxury and electric vehicle
-              rentals. Experience driving redefined.
+              Plateforme ERP pour la location de véhicules : flotte, réservations et suivi
+              client au même endroit.
             </p>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-slate-800">Support</h3>
-
+            <h3 className="text-xl font-semibold text-slate-800">Assistance</h3>
             <ul className="mt-4 space-y-3 text-slate-400">
               <li>
                 <a href="#" className="transition hover:text-slate-600">
-                  Help Center
+                  Centre d&apos;aide
                 </a>
               </li>
               <li>
                 <a href="#" className="transition hover:text-slate-600">
-                  Safety Information
+                  Sécurité &amp; confiance
                 </a>
               </li>
               <li>
                 <a href="#" className="transition hover:text-slate-600">
-                  Cancellation Options
+                  Annulation &amp; remboursement
                 </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-slate-800">Corporate</h3>
-
+            <h3 className="text-xl font-semibold text-slate-800">Entreprise</h3>
             <ul className="mt-4 space-y-3 text-slate-400">
               <li>
                 <a href="#" className="transition hover:text-slate-600">
-                  Fleet Management
+                  Gestion de flotte
                 </a>
               </li>
               <li>
                 <a href="#" className="transition hover:text-slate-600">
-                  Business Accounts
+                  Comptes professionnels
                 </a>
               </li>
               <li>
                 <a href="#" className="transition hover:text-slate-600">
-                  Privacy Policy
+                  Confidentialité
                 </a>
               </li>
             </ul>
@@ -66,14 +64,22 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-400">
-            © 2023 ERP Car Rental Systems. All rights reserved.
+            © {new Date().getFullYear()} {BRAND}. Tous droits réservés.
           </p>
 
           <div className="flex items-center gap-4 text-slate-400">
-            <button className="transition hover:text-slate-600">
+            <button
+              type="button"
+              className="transition hover:text-slate-600"
+              aria-label="Langue"
+            >
               <Globe className="h-5 w-5" />
             </button>
-            <button className="transition hover:text-slate-600">
+            <button
+              type="button"
+              className="transition hover:text-slate-600"
+              aria-label="Partager"
+            >
               <Share2 className="h-5 w-5" />
             </button>
           </div>

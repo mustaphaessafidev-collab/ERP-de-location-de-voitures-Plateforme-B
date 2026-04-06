@@ -4,11 +4,11 @@ const toBoolean = (value: string | undefined, defaultValue: boolean) => {
 };
 
 const toNumber = (value: string | undefined, defaultValue: number) => {
-  return Number(value) ?? defaultValue;
+  return parseInt(value) || defaultValue;
 };
 
 const toString = (value: string | undefined, defaultValue: string) => {
-  return String(value) ?? defaultValue;
+  return String(value) || defaultValue;
 };
 
 const isAwsRdsConnectionString = (url: string) => /\.rds\.amazonaws\.com/i.test(url);
