@@ -5,6 +5,7 @@ import VehicleImage from "../components/cars/VehicleDetails/VehicleImage";
 import VehicleInfo from "../components/cars/VehicleDetails/VehicleInfo";
 import VehicleSpecifications from "../components/cars/VehicleDetails/VehicleSpecifications";
 import RentalConditions from "../components/cars/VehicleDetails/RentalConditions";
+import BookingCard from "../components/cars/VehicleDetails/BookingCard";
 
 
 
@@ -51,6 +52,9 @@ export default function VehicleDetails() {
               <VehicleSpecifications vehicle={vehicle} />
               <RentalConditions/>
 
+            </div>
+            <div className="lg:col-span-1">
+              <BookingCard vehicle={vehicle} />
             </div>
           </div>
         </div>
