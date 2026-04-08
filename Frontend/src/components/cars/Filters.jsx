@@ -27,7 +27,7 @@ export default function Filters({
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
           Catégorie
         </p>
-
+// Filtres vehicule
         <div className="space-y-2 text-sm text-slate-600">
           <label className="flex items-center gap-2">
             <input
