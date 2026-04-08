@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function VehicleCard({ vehicle }) {
   const navigate = useNavigate();
+ // git card
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
