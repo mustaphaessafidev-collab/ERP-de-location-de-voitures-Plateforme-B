@@ -15,11 +15,21 @@ app.get("/", (req, res) => {
   res.json({ message: "API Gateway is working" });
 });
 
+// Auth Service Proxy
 app.use(
   createProxyMiddleware({
-    target: process.env.AUTH_SERVICE_URL,
+    target: process.env.AUTH_SERVICE_URL || "http://localhost:3001",
     changeOrigin: true,
-    pathFilter: ["/api"],
+    pathFilter: ["/api/auth", "/api/user", "/api/validate", "/api/notifications"],
+  })
+);
+
+// Review Service Proxy
+app.use(
+  createProxyMiddleware({
+    target: process.env.REVIEW_SERVICE_URL || "http://localhost:3002",
+    changeOrigin: true,
+    pathFilter: ["/api/reviews"],
   })
 );
 

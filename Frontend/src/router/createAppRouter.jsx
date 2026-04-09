@@ -13,6 +13,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
 import ReservationSuccessPage from "../pages/ReservationSuccessPage";
+import ReviewsPage from "../pages/ReviewsPage";
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -83,6 +84,7 @@ const privateRoutes = mapRoutesToRouter([
 
   
   { path: "/notifications", element: <NotificationsPage /> },
+  { path: "/reviews", element: <ReviewsPage /> },
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
   { path: "/booking-review", element: <ReservationPage /> },
