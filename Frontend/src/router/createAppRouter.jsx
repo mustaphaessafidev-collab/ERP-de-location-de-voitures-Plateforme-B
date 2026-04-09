@@ -13,6 +13,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
 import ReservationSuccessPage from "../pages/ReservationSuccessPage";
+import Dashboard from "../components/dashboard/Dashboard";
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -31,6 +32,12 @@ const publicRoutes = mapRoutesToRouter([
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
   { path: "/notifications", element: <NotificationsPage /> },
+  {
+    path: "/dashboard",
+    element: (
+      <Dashboard/>
+    ),
+  },
 
 ]);
 
@@ -38,10 +45,7 @@ const privateRoutes = mapRoutesToRouter([
   {
     path: "/dashboard",
     element: (
-      <PlaceholderPage
-        title="Tableau de bord"
-        message="Le contenu principal du tableau de bord sera ajouté ici prochainement."
-      />
+      <Dashboard/>
     ),
   },
   {
