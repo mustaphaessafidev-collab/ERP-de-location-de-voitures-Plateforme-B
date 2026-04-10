@@ -91,7 +91,10 @@ export const authService = {
    */
   async getProfile() {
     try {
-      const response = await apiClient.get("/auth/profile");
+      const response = await apiClient.get("/profile/profile");
+      if (response.data) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
       return response.data;
     } catch (error) {
       console.error("Failed to fetch profile:", error);
@@ -100,20 +103,73 @@ export const authService = {
     }
   },
 
+  async updatePersonalInfo(personalData) {
+    try {
+      const response = await apiClient.put("/profile/personal-info", personalData);
+      if (response.data?.profile) {
+        localStorage.setItem("user", JSON.stringify(response.data.profile));
+      }
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Personal information update failed");
+      }
+      throw error;
+    }
+  },
+
+  async updateProfilePhoto(photoData) {
+    try {
+      const response = await apiClient.put("/profile/photo", photoData);
+      if (response.data?.profile) {
+        localStorage.setItem("user", JSON.stringify(response.data.profile));
+      }
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Profile photo update failed");
+      }
+      throw error;
+    }
+  },
+
   /**
    * Update user password
    */
-  async updatePassword(currentPassword, newPassword, email) {
+  async updatePassword(newPassword, confirmPassword) {
     try {
-      const response = await apiClient.put("/auth/update-password", {
-        email,
-        currentPassword,
+      const response = await apiClient.put("/profile/password", {
         newPassword,
+        confirmPassword,
       });
       return response.data;
     } catch (error) {
       if (error.response && error.response.data) {
-        throw new Error(error.response.data.message || "Password update failed");
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Password update failed");
+      }
+      throw error;
+    }
+  },
+
+  async updateDrivingLicense(licenseData) {
+    try {
+      const response = await apiClient.put("/profile/license", licenseData);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Driving license update failed");
       }
       throw error;
     }

@@ -1,14 +1,67 @@
 import React from 'react';
-import { Upload } from 'lucide-react';
+import { Save, Upload } from 'lucide-react';
 import './DrivingLicenseSection.css';
 
 import licensePlaceholder from '../../assets/OIP.webp';
 
-export default function DrivingLicenseSection({ formData, setFormData }) {
+export default function DrivingLicenseSection({ formData, setFormData, onSaveDrivingLicense, savingLicense }) {
+  const handleDocumentChange = (side) => async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Each license file must be 5MB or smaller');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+      if (!dataUrl) return;
+
+      setFormData({
+        ...formData,
+        ...(side === 'front'
+          ? {
+              licenseFrontPreview: dataUrl,
+              licenseFrontData: dataUrl,
+              licenseFrontName: file.name,
+              licenseFrontMimeType: file.type || 'application/octet-stream',
+            }
+          : {
+              licenseBackPreview: dataUrl,
+              licenseBackData: dataUrl,
+              licenseBackName: file.name,
+              licenseBackMimeType: file.type || 'application/octet-stream',
+            }),
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-3">
         <h5 className="text-lg font-semibold text-gray-800">Driving License</h5>
+        <button
+          onClick={onSaveDrivingLicense}
+          disabled={savingLicense}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 text-sm font-medium disabled:bg-green-400 disabled:cursor-not-allowed"
+        >
+          {savingLicense ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              Save Driving License
+            </>
+          )}
+        </button>
+      </div>
+      <div className="flex justify-end mb-3">
         <small className="text-sm text-gray-500">Last updated: 2 days ago</small>
       </div>
 
@@ -49,12 +102,7 @@ export default function DrivingLicenseSection({ formData, setFormData }) {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = URL.createObjectURL(file);
-                    setFormData({ ...formData, licenseFrontPreview: url });
-                  }}
+                  onChange={handleDocumentChange('front')}
                 />
                 <div className="relative w-32 h-20">
                   <img
@@ -80,12 +128,7 @@ export default function DrivingLicenseSection({ formData, setFormData }) {
                   type="file"
                   accept="image/*,application/pdf"
                   className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = URL.createObjectURL(file);
-                    setFormData({ ...formData, licenseBackPreview: url });
-                  }}
+                  onChange={handleDocumentChange('back')}
                 />
                 <div className="w-32 h-20 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center">
                   {formData.licenseBackPreview ? (

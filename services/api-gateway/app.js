@@ -27,6 +27,18 @@ app.use(
   })
 );
 
+app.use(
+  "/api/profile",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/profile": "/api/profile",
+    },
+    ignorePath: false,
+  })
+);
+
 //test github
 
 // app.use(

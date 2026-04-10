@@ -15,25 +15,48 @@ model User {
   id               Int       @id @default(autoincrement())
   nom_complet      String
   cin              String    @unique
+  num_permis       String?
   telephone        String
   email            String    @unique
   adresse          String?
+  profilePhotoData String?   @map("profile_photo_data")
+  profilePhotoName String?   @map("profile_photo_name")
+  profilePhotoMimeType String? @map("profile_photo_mime_type")
   password         String
-  isEmailValidated Boolean   @default(false)
+  isEmailValidated Boolean   @default(false) @map("is_email_validated")
   created_at       DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  passwordResets        PasswordResetToken[]
+  passwordResets           PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  drivingLicense          DrivingLicense?
   @@map("users")
+}
+
+model DrivingLicense {
+  id                    Int       @id @default(autoincrement())
+  userId                Int       @unique @map("user_id")
+  licenseNumber         String    @map("license_number")
+  expiryDate            DateTime? @map("expiry_date") @db.Date
+  frontDocumentData     String?   @map("front_document_data")
+  frontDocumentName     String?   @map("front_document_name")
+  frontDocumentMimeType String?   @map("front_document_mime_type")
+  backDocumentData      String?   @map("back_document_data")
+  backDocumentName      String?   @map("back_document_name")
+  backDocumentMimeType  String?   @map("back_document_mime_type")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("driving_licenses")
 }
 
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   email     String
-  expiresAt DateTime
-  userId    Int
+  expiresAt DateTime @map("expires_at")
+  userId    Int      @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("password_reset_tokens")
 }
@@ -42,8 +65,8 @@ model EmailVerificationToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   email     String
-  expiresAt DateTime
-  userId    Int
+  expiresAt DateTime @map("expires_at")
+  userId    Int      @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("email_verification_tokens")
 }

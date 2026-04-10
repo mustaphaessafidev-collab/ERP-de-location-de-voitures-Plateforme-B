@@ -7,6 +7,7 @@ import { toUserResponse } from "../models";
 import { env } from "../config/env";
 import {
   CinAlreadyRegisteredError,
+  InvalidCurrentPasswordError,
   EmailNotValidatedError,
   InvalidCredentialsError,
   InvalidResetTokenError,
@@ -19,12 +20,20 @@ import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updatePersonalInfoSchema,
   updatePasswordSchema,
+  updatePasswordForAuthenticatedUserSchema,
+  upsertDrivingLicenseSchema,
+  updateProfilePhotoSchema,
   validateEmailSchema,
   type RegisterInput,
   type LoginInput,
   type ResetPasswordInput,
+  type UpdatePersonalInfoInput,
   type UpdatePasswordInput,
+  type UpdatePasswordForAuthenticatedUserInput,
+  type UpsertDrivingLicenseInput,
+  type UpdateProfilePhotoInput,
   type ValidateEmailInput,
 } from "../validators/auth.validator";
 
@@ -153,19 +162,102 @@ export const authService = {
     const user = await authRepository.findByEmail(data.email);
     if (!user) throw new InvalidCredentialsError();
     const ok = await comparePassword(data.currentPassword, user.password);
-    if (!ok) throw new InvalidCredentialsError();
+    if (!ok) throw new InvalidCurrentPasswordError();
     const hashed = await hashPassword(data.newPassword);
     await authRepository.updatePasswordByUserId(user.id, hashed);
     return { message: "Password updated successfully" };
   },
 
-  async updatePasswordForAuthenticatedUser(userId: number, payload: { currentPassword: string; newPassword: string }) {
+  async updatePasswordForAuthenticatedUser(userId: number, payload: unknown) {
+    const data = updatePasswordForAuthenticatedUserSchema.parse(
+      payload
+    ) as UpdatePasswordForAuthenticatedUserInput;
     const user = await authRepository.findById(userId);
     if (!user) throw new InvalidCredentialsError();
-    const ok = await comparePassword(payload.currentPassword, user.password);
-    if (!ok) throw new InvalidCredentialsError();
-    const hashed = await hashPassword(payload.newPassword);
+    const hashed = await hashPassword(data.newPassword);
     await authRepository.updatePasswordByUserId(userId, hashed);
     return { message: "Password updated successfully" };
+  },
+
+  async updatePersonalInfo(userId: number, payload: unknown) {
+    const data = updatePersonalInfoSchema.parse(payload) as UpdatePersonalInfoInput;
+    const user = await authRepository.findById(userId);
+    if (!user) throw new UserNotFoundError();
+
+    const normalizedEmail = data.email.toLowerCase();
+    if (normalizedEmail !== user.email.toLowerCase()) {
+      const existing = await authRepository.findByEmail(normalizedEmail);
+      if (existing && existing.id !== userId) {
+        throw new UserAlreadyRegisteredError();
+      }
+    }
+
+    const normalizedCin = data.cin.trim();
+    if (normalizedCin !== user.cin) {
+      const existingByCin = await authRepository.findByCin(normalizedCin);
+      if (existingByCin && existingByCin.id !== userId) {
+        throw new CinAlreadyRegisteredError();
+      }
+    }
+
+    await authRepository.updatePersonalInfoByUserId(userId, {
+      nom_complet: data.nom_complet.trim(),
+      cin: normalizedCin,
+      email: normalizedEmail,
+      telephone: data.telephone.trim(),
+      adresse: data.adresse?.trim() || null,
+    });
+
+    const profile = await authRepository.findProfileById(userId);
+    return {
+      message: "Personal information updated successfully",
+      profile,
+    };
+  },
+
+  async updateProfilePhoto(userId: number, payload: unknown) {
+    const data = updateProfilePhotoSchema.parse(payload) as UpdateProfilePhotoInput;
+    const user = await authRepository.findById(userId);
+    if (!user) throw new UserNotFoundError();
+
+    await authRepository.updateProfilePhotoByUserId(userId, {
+      profilePhotoData: data.profilePhotoData || null,
+      profilePhotoName: data.profilePhotoName || null,
+      profilePhotoMimeType: data.profilePhotoMimeType || null,
+    });
+
+    const profile = await authRepository.findProfileById(userId);
+    return {
+      message: "Profile photo updated successfully",
+      profile,
+    };
+  },
+
+  async getProfile(userId: number) {
+    const profile = await authRepository.findProfileById(userId);
+    if (!profile) throw new UserNotFoundError();
+    return profile;
+  },
+
+  async upsertDrivingLicense(userId: number, payload: unknown) {
+    const data = upsertDrivingLicenseSchema.parse(payload) as UpsertDrivingLicenseInput;
+    const user = await authRepository.findById(userId);
+    if (!user) throw new UserNotFoundError();
+
+    const drivingLicense = await authRepository.upsertDrivingLicense(userId, {
+      licenseNumber: data.licenseNumber.trim(),
+      expiryDate: data.expiryDate ? new Date(`${data.expiryDate}T00:00:00.000Z`) : null,
+      frontDocumentData: data.frontDocumentData || null,
+      frontDocumentName: data.frontDocumentName || null,
+      frontDocumentMimeType: data.frontDocumentMimeType || null,
+      backDocumentData: data.backDocumentData || null,
+      backDocumentName: data.backDocumentName || null,
+      backDocumentMimeType: data.backDocumentMimeType || null,
+    });
+
+    return {
+      message: "Driving license updated successfully",
+      drivingLicense,
+    };
   },
 };

@@ -1,25 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import PersonalDetailsSection from './PersonalDetailsSection';
+import ProfilePhotoSection from './ProfilePhotoSection';
 import DrivingLicenseSection from './DrivingLicenseSection';
 import SecurityPasswordSection from './SecurityPasswordSection';
 import { authService } from '../../services/auth';
+import { useAuth } from '../../context/useAuth';
 
 export default function DriveEaseProfile() {
+  const { refreshAuth } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingPersonal, setSavingPersonal] = useState(false);
+  const [savingPhoto, setSavingPhoto] = useState(false);
+  const [savingLicense, setSavingLicense] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    nom_complet: '',
+    cin: '',
     email: '',
-    phone: '',
+    telephone: '',
+    adresse: '',
+    profilePhotoPreview: null,
+    profilePhotoData: '',
+    profilePhotoName: '',
+    profilePhotoMimeType: '',
     licenseNumber: '',
     expiryDate: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
     licenseFrontPreview: null,
+    licenseFrontData: null,
+    licenseFrontName: '',
+    licenseFrontMimeType: '',
     licenseBackPreview: null,
+    licenseBackData: null,
+    licenseBackName: '',
+    licenseBackMimeType: '',
   });
 
   useEffect(() => {
@@ -29,18 +46,30 @@ export default function DriveEaseProfile() {
         const userProfile = await authService.getProfile();
         
         if (userProfile) {
-          // Split nom_complet into firstName and lastName
-          const nameParts = userProfile.nom_complet ? userProfile.nom_complet.split(' ') : ['', ''];
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
+          refreshAuth();
           setFormData(prev => ({
             ...prev,
-            firstName,
-            lastName,
+            nom_complet: userProfile.nom_complet || '',
+            cin: userProfile.cin || '',
             email: userProfile.email || '',
-            phone: userProfile.telephone || '',
-            address: userProfile.adresse || '',
+            telephone: userProfile.telephone || '',
+            adresse: userProfile.adresse || '',
+            profilePhotoPreview: userProfile.profilePhotoData || null,
+            profilePhotoData: userProfile.profilePhotoData || '',
+            profilePhotoName: userProfile.profilePhotoName || '',
+            profilePhotoMimeType: userProfile.profilePhotoMimeType || '',
+            licenseNumber: userProfile.drivingLicense?.licenseNumber || userProfile.num_permis || '',
+            expiryDate: userProfile.drivingLicense?.expiryDate
+              ? new Date(userProfile.drivingLicense.expiryDate).toISOString().slice(0, 10)
+              : '',
+            licenseFrontPreview: userProfile.drivingLicense?.frontDocumentData || null,
+            licenseFrontData: userProfile.drivingLicense?.frontDocumentData || null,
+            licenseFrontName: userProfile.drivingLicense?.frontDocumentName || '',
+            licenseFrontMimeType: userProfile.drivingLicense?.frontDocumentMimeType || '',
+            licenseBackPreview: userProfile.drivingLicense?.backDocumentData || null,
+            licenseBackData: userProfile.drivingLicense?.backDocumentData || null,
+            licenseBackName: userProfile.drivingLicense?.backDocumentName || '',
+            licenseBackMimeType: userProfile.drivingLicense?.backDocumentMimeType || '',
             // Never prefill password fields for security
             currentPassword: '',
             newPassword: '',
@@ -53,17 +82,18 @@ export default function DriveEaseProfile() {
         // Fallback to localStorage
         const localUser = authService.getCurrentUser();
         if (localUser) {
-          const nameParts = localUser.nom_complet ? localUser.nom_complet.split(' ') : ['', ''];
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
           setFormData(prev => ({
             ...prev,
-            firstName,
-            lastName,
+            nom_complet: localUser.nom_complet || '',
+            cin: localUser.cin || '',
             email: localUser.email || '',
-            phone: localUser.telephone || '',
-            address: localUser.adresse || '',
+            telephone: localUser.telephone || '',
+            adresse: localUser.adresse || '',
+            profilePhotoPreview: localUser.profilePhotoData || null,
+            profilePhotoData: localUser.profilePhotoData || '',
+            profilePhotoName: localUser.profilePhotoName || '',
+            profilePhotoMimeType: localUser.profilePhotoMimeType || '',
+            licenseNumber: localUser.num_permis || '',
             // Never prefill password fields for security
             currentPassword: '',
             newPassword: '',
@@ -76,64 +106,102 @@ export default function DriveEaseProfile() {
     };
 
     fetchUserProfile();
-  }, []);
+  }, [refreshAuth]);
 
   const handleSavePersonalInfo = async () => {
-    setSaving(true);
+    setSavingPersonal(true);
     try {
-      // Here you can add logic to update personal details and driving license
-      const personalData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+      await authService.updatePersonalInfo({
+        nom_complet: formData.nom_complet,
+        cin: formData.cin,
         email: formData.email,
-        phone: formData.phone,
-        licenseNumber: formData.licenseNumber,
-        expiryDate: formData.expiryDate,
-      };
-      
-      console.log('Personal info saved:', personalData);
-      
-      // TODO: Add API call to update personal information
-      // await authService.updatePersonalInfo(personalData);
-      
-      alert('Personal information saved successfully!');
+        telephone: formData.telephone,
+        adresse: formData.adresse || '',
+      });
+
+      alert('Personal information updated successfully!');
+      refreshAuth();
     } catch (error) {
-      console.error('Failed to save personal information:', error);
-      alert(error.message || 'Failed to save personal information');
+      console.error('Failed to update personal information:', error);
+      alert(error.message || 'Failed to update personal information');
     } finally {
-      setSaving(false);
+      setSavingPersonal(false);
+    }
+  };
+
+  const handleSaveProfilePhoto = async () => {
+    setSavingPhoto(true);
+    try {
+      await authService.updateProfilePhoto({
+        profilePhotoData: formData.profilePhotoData || '',
+        profilePhotoName: formData.profilePhotoName || '',
+        profilePhotoMimeType: formData.profilePhotoMimeType || '',
+      });
+
+      alert('Profile photo updated successfully!');
+      refreshAuth();
+    } catch (error) {
+      console.error('Failed to update profile photo:', error);
+      alert(error.message || 'Failed to update profile photo');
+    } finally {
+      setSavingPhoto(false);
+    }
+  };
+
+  const handleSaveDrivingLicense = async () => {
+    setSavingLicense(true);
+    try {
+      await authService.updateDrivingLicense({
+        licenseNumber: formData.licenseNumber,
+        expiryDate: formData.expiryDate || '',
+        frontDocumentData: formData.licenseFrontData || '',
+        frontDocumentName: formData.licenseFrontName || '',
+        frontDocumentMimeType: formData.licenseFrontMimeType || '',
+        backDocumentData: formData.licenseBackData || '',
+        backDocumentName: formData.licenseBackName || '',
+        backDocumentMimeType: formData.licenseBackMimeType || '',
+      });
+
+      alert('Driving license information saved successfully!');
+    } catch (error) {
+      console.error('Failed to save driving license information:', error);
+      alert(error.message || 'Failed to save driving license information');
+    } finally {
+      setSavingLicense(false);
     }
   };
 
   const handleSavePassword = async () => {
-    setSaving(true);
+    setSavingPassword(true);
     try {
       // Validate password fields
-      if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
-        alert('Please fill in all password fields (current, new, and confirm)');
-        setSaving(false);
+      if (!formData.newPassword || !formData.confirmPassword) {
+        alert('Please fill in all password fields');
+        setSavingPassword(false);
         return;
       }
       
       if (formData.newPassword.length < 8) {
         alert('New password must be at least 8 characters long');
-        setSaving(false);
+        setSavingPassword(false);
         return;
       }
       
       if (formData.newPassword !== formData.confirmPassword) {
         alert('New password and confirm password do not match');
-        setSaving(false);
+        setSavingPassword(false);
         return;
       }
       
-      await authService.updatePassword(formData.currentPassword, formData.newPassword, formData.email);
+      await authService.updatePassword(
+        formData.newPassword,
+        formData.confirmPassword
+      );
       console.log('Password updated successfully');
       
       // Clear password fields after successful update
       setFormData(prev => ({
         ...prev,
-        currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       }));
@@ -143,7 +211,7 @@ export default function DriveEaseProfile() {
       console.error('Failed to update password:', error);
       alert(error.message || 'Failed to update password');
     } finally {
-      setSaving(false);
+      setSavingPassword(false);
     }
   };
 
@@ -163,13 +231,13 @@ export default function DriveEaseProfile() {
                 <>
                   {/* All sections rendered one under another */}
                   <div className="flex justify-between items-start mb-4">
-                    <h5 className="text-base font-bold text-gray-800">Personal Details</h5>
+                    <h5 className="text-base font-bold text-gray-800">Informations personnelles</h5>
                     <button
                       onClick={handleSavePersonalInfo}
-                      disabled={saving}
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 text-sm font-medium disabled:bg-green-400 disabled:cursor-not-allowed"
+                      disabled={savingPersonal}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2 text-sm font-medium disabled:bg-blue-400 disabled:cursor-not-allowed"
                     >
-                      {saving ? (
+                      {savingPersonal ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                           Saving...
@@ -177,7 +245,7 @@ export default function DriveEaseProfile() {
                       ) : (
                         <>
                           <Save size={16} />
-                          Save Personal Details
+                          Enregistrer
                         </>
                       )}
                     </button>
@@ -189,8 +257,22 @@ export default function DriveEaseProfile() {
 
                   <hr className="my-4" />
 
+                  <ProfilePhotoSection
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSaveProfilePhoto={handleSaveProfilePhoto}
+                    savingPhoto={savingPhoto}
+                  />
+
+                  <hr className="my-4" />
+
                   <div className="mt-8">
-                    <DrivingLicenseSection formData={formData} setFormData={setFormData} />
+                    <DrivingLicenseSection
+                      formData={formData}
+                      setFormData={setFormData}
+                      onSaveDrivingLicense={handleSaveDrivingLicense}
+                      savingLicense={savingLicense}
+                    />
                   </div>
 
                   <hr className="my-4" />
@@ -200,6 +282,7 @@ export default function DriveEaseProfile() {
                       formData={formData} 
                       setFormData={setFormData} 
                       onSavePassword={handleSavePassword}
+                      savingPassword={savingPassword}
                     />
                   </div>
                 </>
