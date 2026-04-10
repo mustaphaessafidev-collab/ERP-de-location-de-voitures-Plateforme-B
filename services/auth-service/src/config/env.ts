@@ -1,10 +1,9 @@
-
 const toBoolean = (value: string | undefined, defaultValue: boolean) => {
   return value?.toLowerCase() === "true" ? true : value?.toLowerCase() === "false" ? false : defaultValue;
 };
 
 const toNumber = (value: string | undefined, defaultValue: number) => {
-  return parseInt(value) || defaultValue;
+  return parseInt(`${value}`) || defaultValue;
 };
 
 const toString = (value: string | undefined, defaultValue: string) => {

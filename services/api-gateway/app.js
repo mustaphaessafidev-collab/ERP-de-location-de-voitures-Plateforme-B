@@ -28,6 +28,24 @@ app.use(
 );
 
 //test github
+// app.use(
+//   "/api/reservations",
+//   createProxyMiddleware({
+//     target: process.env.AUTH_SERVICE_URL,
+//     changeOrigin: true,
+//     pathRewrite: { "^/api/reservations": "/api/reservations" },
+//   })
+// );
+
+// app.use(
+//   "/api/notifications",
+//   createProxyMiddleware({
+//     target: process.env.AUTH_SERVICE_URL,
+//     changeOrigin: true,
+//     pathRewrite: { "^/api/notifications": "/api/notifications" },
+//   })
+// );
+
 
 // app.use(
 //   "/api/tickets",

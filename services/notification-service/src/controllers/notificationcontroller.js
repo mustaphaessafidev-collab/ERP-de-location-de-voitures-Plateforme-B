@@ -10,10 +10,10 @@ export const createNotification = async (req, res) => {
         message: "userId, type and message are required",
       });
     }
-
+    
     const notification = await prisma.notification.create({
       data: {
-        userId,
+        userId: String(userId),
         userRole: userRole || "CLIENT",
         type,
         title,

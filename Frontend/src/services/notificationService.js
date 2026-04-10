@@ -19,3 +19,7 @@ export const createNotification = async (data) => {
   const res = await api.post(`/notifications`, data);
   return res.data;
 };
+export const deleteNotification = async (id) => {
+  const res = await api.delete(`/notifications/${id}`);
+  return res.data;
+};

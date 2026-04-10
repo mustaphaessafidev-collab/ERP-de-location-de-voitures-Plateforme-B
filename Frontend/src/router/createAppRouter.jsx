@@ -12,6 +12,7 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
+import ReservationSuccessPage from "../pages/ReservationSuccessPage";
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -29,7 +30,7 @@ const publicRoutes = mapRoutesToRouter([
   },
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
-  
+  { path: "/notifications", element: <NotificationsPage /> },
 
 ]);
 
@@ -81,10 +82,11 @@ const privateRoutes = mapRoutesToRouter([
   },
 
   
-  { path: "/notifications", element: <NotificationsPage /> },
+  
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
   { path: "/booking-review", element: <ReservationPage /> },
+  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },          
 ]);
 
 export function createAppRouter() {
