@@ -36,7 +36,7 @@ export default function HomePage() {
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroImages.length);
   };
-
+// Fonction pour revenir au slide précédent
   const prevSlide = () => {
     setCurrentSlide((prev) =>
       prev === 0 ? heroImages.length - 1 : prev - 1
