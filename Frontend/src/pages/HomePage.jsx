@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import vehiclesData from "../fake-data/vehicules-api.json";
-
+import { Car, Users } from "lucide-react";
 export default function HomePage() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -119,71 +119,102 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* POPULAR VEHICLES */}
-      <section className="mx-auto w-[94%] py-10 sm:w-[92%] sm:py-12">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
-              Véhicules populaires
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Découvrez une sélection de véhicules disponibles
-            </p>
+    
+{/* POPULAR VEHICLES */}
+<section className="mx-auto w-[94%] py-10 sm:w-[92%] sm:py-12">
+  <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+        Notre flotte
+      </p>
+      <h2 className="text-2xl font-bold text-slate-900">
+        Véhicules populaires
+      </h2>
+      <p className="mt-1 text-sm text-slate-500">
+        Véhicules sélectionnés selon vos recherches récentes
+      </p>
+    </div>
+
+    <button
+      onClick={() => navigate("/VehicleCatalogPage")}
+      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+    >
+      Voir tout
+    </button>
+  </div>
+
+  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+    {popularVehicles.map((vehicle, index) => (
+      <motion.div
+        key={vehicle.id}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        viewport={{ once: true }}
+        className="group overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-slate-200 transition duration-300 hover:-translate-y-2 hover:shadow-xl"
+      >
+        {/* IMAGE */}
+        <div className="relative overflow-hidden">
+          <img
+            src={vehicle.photo_url}
+            alt={`${vehicle.modele.marque.nom} ${vehicle.modele.nom}`}
+            className="h-52 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56"
+          />
+
+          {/* CATEGORY BADGE */}
+          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow">
+            {vehicle.categorie.libelle}
+          </span>
+        </div>
+
+        {/* CONTENT */}
+        <div className="p-4 sm:p-5">
+          {/* TITLE */}
+          <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
+            {vehicle.modele.marque.nom} {vehicle.modele.nom}
+          </h3>
+
+          {/* CITY */}
+          <p className="mt-1 text-sm text-slate-500">
+            Casablanca
+          </p>
+
+          {/* PRICE BADGE */}
+          <div className="mt-3">
+            <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              {vehicle.prix_jour} DH / jour
+            </span>
           </div>
 
-          <button
-            onClick={() => navigate("/VehicleCatalogPage")}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Voir tout
-          </button>
-        </div>
+          {/* INFOS */}
+          <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
+            <div className="flex items-center gap-1">
+              <Car size={16} />
+              <span>Automatic</span>
+            </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {popularVehicles.map((vehicle, index) => (
-            <motion.div
-              key={vehicle.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-2 hover:shadow-xl"
+            <div className="flex items-center gap-1">
+              <Users size={16} />
+              <span>5 Places</span>
+            </div>
+          </div>
+
+          {/* SINGLE BUTTON */}
+          <div className="mt-4">
+            <button
+              onClick={() => navigate(`/VehicleDetail/${vehicle.id}`)}
+              className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98]"
             >
-              <div className="overflow-hidden">
-                <img
-                  src={vehicle.photo_url}
-                  alt={`${vehicle.modele.marque.nom} ${vehicle.modele.nom}`}
-                  className="h-52 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56"
-                />
-              </div>
-
-              <div className="p-4 sm:p-5">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
-                      {vehicle.modele.marque.nom} {vehicle.modele.nom}
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {vehicle.categorie.libelle}
-                    </p>
-                  </div>
-
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {vehicle.prix_jour} DH / jour
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => navigate(`/VehicleDetail/${vehicle.id}`)}
-                  className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-                >
-                  Voir les détails
-                </button>
-              </div>
-            </motion.div>
-          ))}
+              Voir les détails
+            </button>
+          </div>
         </div>
-      </section>
+      </motion.div>
+    ))}
+  </div>
+</section>
+
+
 
       {/* FEATURES */}
       <section className="mx-auto w-[94%] py-6 sm:w-[92%] sm:py-8">
