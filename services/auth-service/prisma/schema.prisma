@@ -14,8 +14,8 @@ datasource db {
 model User {
   id               Int       @id @default(autoincrement())
   nom_complet      String
-  cin              String    @unique
-  telephone        String
+  cin              String?   @unique
+  telephone        String?
   email            String    @unique
   adresse          String?
   password         String

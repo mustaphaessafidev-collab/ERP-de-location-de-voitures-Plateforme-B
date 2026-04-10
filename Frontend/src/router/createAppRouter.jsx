@@ -2,9 +2,9 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { mapRoutesToRouter } from "../helpers/routeHelpers";
 import AppLayout from "../layouts/AppLayout";
 import { guestRouteLoader, privateRouteLoader } from "./authLoaders";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import ValidateEmailPage from "../pages/ValidateEmailPage";
+import LoginPage from "../components/auth/LoginPage";
+import RegisterPage from "../components/auth/RegisterPage";
+import ValidateEmailPage from "../components/auth/ValidateEmailPage";
 import VehicleCatalogPage from "../pages/VehicleCatalogPage";
 import VehicleDetailsPage from "../pages/VehicleDetailsPage";
 import ReservationPage from "../components/reservation/Reservation";
@@ -13,6 +13,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
 import ReservationSuccessPage from "../pages/ReservationSuccessPage";
+import ReviewsPage from "../pages/ReviewsPage";
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -82,7 +83,12 @@ const privateRoutes = mapRoutesToRouter([
   },
 
   
+// <<<<<<< HEAD
   
+// =======
+//   { path: "/notifications", element: <NotificationsPage /> },
+//   { path: "/reviews", element: <ReviewsPage /> },
+// >>>>>>> 22d622e91a6376e114c5434f5235a317f1b06a09
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
   { path: "/booking-review", element: <ReservationPage /> },

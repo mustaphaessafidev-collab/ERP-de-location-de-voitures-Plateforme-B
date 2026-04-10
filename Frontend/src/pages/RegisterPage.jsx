@@ -37,7 +37,9 @@ export default function RegisterPage() {
     }
 
     try {
-      await authService.register(formData);
+      // Strip confirmPassword — the backend doesn't expect it
+      const { confirmPassword, ...payload } = formData;
+      await authService.register(payload);
       // Registration successful, navigate to validate email page
       navigate('/validate-email', { state: { email: formData.email } });
     } catch (err) {
