@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+// Import des icônes pour améliorer l’interface utilisateur
 import {
   ShieldCheck,
   Headphones,
