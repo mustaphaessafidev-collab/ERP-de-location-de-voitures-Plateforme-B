@@ -82,17 +82,12 @@ const privateRoutes = mapRoutesToRouter([
     ),
   },
 
-  
-// <<<<<<< HEAD
-  
-// =======
-//   { path: "/notifications", element: <NotificationsPage /> },
-//   { path: "/reviews", element: <ReviewsPage /> },
-// >>>>>>> 22d622e91a6376e114c5434f5235a317f1b06a09
+  { path: "/booking-review", element: <ReservationPage /> },
+  { path: "/notifications", element: <NotificationsPage /> },
+  { path: "/reviews", element: <ReviewsPage /> },
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
-  { path: "/booking-review", element: <ReservationPage /> },
-  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },          
+  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },
 ]);
 
 export function createAppRouter() {
