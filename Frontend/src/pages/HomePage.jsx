@@ -24,7 +24,7 @@ export default function HomePage() {
     ],
     []
   );
-
+ // Effet pour faire défiler automatiquement les slides toutes les 4 secondes
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
