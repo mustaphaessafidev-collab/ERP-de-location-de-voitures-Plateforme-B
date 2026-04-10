@@ -32,6 +32,7 @@ export default function HomePage() {
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
+  // Fonction pour aller au slide suivant
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroImages.length);
