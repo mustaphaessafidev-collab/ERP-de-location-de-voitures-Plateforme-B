@@ -31,7 +31,7 @@ const publicRoutes = mapRoutesToRouter([
   },
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
-  
+  { path: "/notifications", element: <NotificationsPage /> },
 
 ]);
 
@@ -82,13 +82,13 @@ const privateRoutes = mapRoutesToRouter([
     ),
   },
 
-  
+
+  { path: "/booking-review", element: <ReservationPage /> },
   { path: "/notifications", element: <NotificationsPage /> },
   { path: "/reviews", element: <ReviewsPage /> },
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
-  { path: "/booking-review", element: <ReservationPage /> },
-  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },          
+  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },
 ]);
 
 export function createAppRouter() {
