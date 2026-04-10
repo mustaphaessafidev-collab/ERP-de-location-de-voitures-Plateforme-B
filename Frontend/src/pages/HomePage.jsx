@@ -9,10 +9,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+// Import des données véhicules (JSON simulé)
 import vehiclesData from "../fake-data/vehicules-api.json";
 // Icônes supplémentaires pour les cartes véhicules
 import { Car, Users } from "lucide-react";
 export default function HomePage() {
+  // Hook pour la navigation entre les pages
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
 // Liste des images du carousel (useMemo pour éviter re-render inutile)
