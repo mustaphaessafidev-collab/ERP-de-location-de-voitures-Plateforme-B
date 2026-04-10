@@ -13,54 +13,55 @@ import {
   DollarSign
 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { Link } from "react-router-dom";
 
 
 export default function Dashboard() {
 
-const bookings = [
-{
-name:"Tesla Model 3",
-img:"https://i.pinimg.com/1200x/dd/e0/90/dde090a46c2af259fb3f8540eee76154.jpg",
-plate:"Plate: KJ-406-YTS",
-dates:"Jun 12 - Jun 15",
-duration:"3 days rental",
-total:"$450.00",
-status:"progress"
-},
-{
-name:"MERCEDES E-Class E350",
-img:"https://i.pinimg.com/736x/1d/9f/19/1d9f192008b06b3118c83f27be55f4ac.jpg",
-plate:"Plate: PZ-22F-MR",
-dates:"Jun 20 - Jun 22",
-duration:"2 days rental",
-total:"$790.00",
-status:"confirmed" 
-},
-{
-name:"BMW 3 Series",
-img:"https://i.pinimg.com/736x/92/43/76/924376abba339a8c17f9504fbb7bf460.jpg",
-plate:"Plate: HN-789-BW",
-dates:"Jul 04 - Jul 06",
-duration:"2 days rental",
-total:"$320.00",
-status:"pending"
-}
-];
+  const bookings = [
+    {
+      name: "Tesla Model 3",
+      img: "https://i.pinimg.com/1200x/dd/e0/90/dde090a46c2af259fb3f8540eee76154.jpg",
+      plate: "Plate: KJ-406-YTS",
+      dates: "Jun 12 - Jun 15",
+      duration: "3 days rental",
+      total: "$450.00",
+      status: "progress"
+    },
+    {
+      name: "MERCEDES E-Class E350",
+      img: "https://i.pinimg.com/736x/1d/9f/19/1d9f192008b06b3118c83f27be55f4ac.jpg",
+      plate: "Plate: PZ-22F-MR",
+      dates: "Jun 20 - Jun 22",
+      duration: "2 days rental",
+      total: "$790.00",
+      status: "confirmed"
+    },
+    {
+      name: "BMW 3 Series",
+      img: "https://i.pinimg.com/736x/92/43/76/924376abba339a8c17f9504fbb7bf460.jpg",
+      plate: "Plate: HN-789-BW",
+      dates: "Jul 04 - Jul 06",
+      duration: "2 days rental",
+      total: "$320.00",
+      status: "pending"
+    }
+  ];
 
-const nav = [
-{ name:"Dashboard", icon:LayoutDashboard },
-{ name:"Fleet", icon:Car },
-{ name:"History", icon:History },
-{ name:"Invoices", icon:FileText },
-{ name:"Profile", icon:User },
-{ name:"Settings", icon:Settings }
-];
+  const nav = [
+    { name: "Dashboard", icon: LayoutDashboard },
+    { name: "Fleet", icon: Car },
+    { name: "History", icon: History },
+    { name: "Invoices", icon: FileText },
+    { name: "Profile", icon: User },
+    { name: "Settings", icon: Settings }
+  ];
 
-return (
+  return (
 
-<div className="layout">
+    <div className="layout">
 
-<style>{`
+      <style>{`
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
@@ -310,158 +311,155 @@ padding:20px;
 
 `}</style>
 
-{/* SIDEBAR */}
+      {/* SIDEBAR */}
 
-<Sidebar/>
+      <Sidebar />
 
-{/* MAIN */}
+      {/* MAIN */}
 
-<main className="main">
+      <main className="main">
 
-{/* TOPBAR */}
+        {/* TOPBAR */}
 
-<div className="topbar">
+        <div className="topbar">
 
-<div className="search">
-<Search size={20}/>
-<input placeholder="Search bookings, invoices..." />
-</div>
+          <div className="search">
+            <Search size={20} />
+            <input placeholder="Search bookings, invoices..." />
+          </div>
 
-<div className="user">
-<Bell size={18}/>
-<div className="avatar"><img className="avatar" src="./images/Mezz.jpg"/></div>
-</div>
+          
 
-</div>
+        </div>
 
-{/* HEADER */}
+        {/* HEADER */}
 
-<div className="header">
+        <div className="header">
 
-<div>
-<h1>Welcome back, Mouhssine</h1>
-<p>Here is an overview of your car rental activity for June 2024.</p>
-</div>
+          <div>
+            <h1>Welcome back, Mouhssine</h1>
+            <p>Here is an overview of your car rental activity for June 2024.</p>
+          </div>
 
-<button className="bookBtn">Book New Car</button>
+          <button className="bookBtn"><Link to="/VehicleCatalogPage">Book New Car</Link></button>
 
-</div>
+        </div>
 
-{/* STATS */}
+        {/* STATS */}
 
-<div className="stats">
+        <div className="stats">
 
-<div className="card">
-<div className="cardTop">
-<Key size={18}/>
-<span style={{color:"#16a34a"}}>+10%</span>
-</div>
-<div className="cardTitle">Active Rentals</div>
-<div className="cardValue">2</div>
-</div>
+          <div className="card">
+            <div className="cardTop">
+              <Key size={18} />
+              <span style={{ color: "#16a34a" }}>+10%</span>
+            </div>
+            <div className="cardTitle">Active Rentals</div>
+            <div className="cardValue">2</div>
+          </div>
 
-<div className="card">
-<div className="cardTop">
-<Calendar size={18}/>
-<span style={{color:"#6b7280"}}>0%</span>
-</div>
-<div className="cardTitle">Upcoming Bookings</div>
-<div className="cardValue">1</div>
-</div>
+          <div className="card">
+            <div className="cardTop">
+              <Calendar size={18} />
+              <span style={{ color: "#6b7280" }}>0%</span>
+            </div>
+            <div className="cardTitle">Upcoming Bookings</div>
+            <div className="cardValue">1</div>
+          </div>
 
-<div className="card">
-<div className="cardTop">
-<DollarSign size={18}/>
-<span style={{color:"#ef4444"}}>-5%</span>
-</div>
-<div className="cardTitle">Total Spent (MTD)</div>
-<div className="cardValue">$1,240.00</div>
-</div>
+          <div className="card">
+            <div className="cardTop">
+              <DollarSign size={18} />
+              <span style={{ color: "#ef4444" }}>-5%</span>
+            </div>
+            <div className="cardTitle">Total Spent (MTD)</div>
+            <div className="cardValue">$1,240.00</div>
+          </div>
 
-</div>
+        </div>
 
-{/* TABLE */}
+        {/* TABLE */}
 
-<div className="tableCard">
+        <div className="tableCard">
 
-<h3>Current Bookings</h3>
+          <h3>Current Bookings</h3>
 
-<table>
+          <table>
 
-<thead>
-<tr>
-<th>VEHICLE</th>
-<th>DATES</th>
-<th>TOTAL</th>
-<th>STATUS</th>
-<th>ACTIONS</th>
-</tr>
-</thead>
+            <thead>
+              <tr>
+                <th>VEHICLE</th>
+                <th>DATES</th>
+                <th>TOTAL</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
 
-<tbody>
+            <tbody>
 
-{bookings.map((b,i)=>(
-<tr key={i}>
+              {bookings.map((b, i) => (
+                <tr key={i}>
 
-<td className="vehicle">
+                  <td className="vehicle">
 
-<img src={b.img}/>
+                    <img src={b.img} />
 
-<div>
-<div className="carName">{b.name}</div>
-<div className="plate">{b.plate}</div>
-</div>
+                    <div>
+                      <div className="carName">{b.name}</div>
+                      <div className="plate">{b.plate}</div>
+                    </div>
 
-</td>
+                  </td>
 
-<td>
-<div>{b.dates}</div>
-<div className="sub">{b.duration}</div>
-</td>
+                  <td>
+                    <div>{b.dates}</div>
+                    <div className="sub">{b.duration}</div>
+                  </td>
 
-<td className="total">{b.total}</td>
+                  <td className="total">{b.total}</td>
 
-<td>
-<span className={`status ${b.status}`}>
-{b.status==="progress"?"In Progress":b.status==="confirmed"?"Confirmed":"Pending"}
-</span>
-</td>
+                  <td>
+                    <span className={`status ${b.status}`}>
+                      {b.status === "progress" ? "In Progress" : b.status === "confirmed" ? "Confirmed" : "Pending"}
+                    </span>
+                  </td>
 
-<td>
-<button className="modify">Modify</button>
-</td>
+                  <td>
+                    <button className="modify">Modify</button>
+                  </td>
 
-</tr>
-))}
+                </tr>
+              ))}
 
-</tbody>
+            </tbody>
 
-</table>
+          </table>
 
-</div>
+        </div>
 
-{/* BOTTOM */}
+        {/* BOTTOM */}
 
-<div className="bottom">
+        <div className="bottom">
 
-<div className="help">
-<h4>Need help with a rental?</h4>
-<p>Our support team is available 24/7</p>
-<button className="rentBtn">Chat Now</button>
-</div>
+          <div className="help">
+            <h4>Need help with a rental?</h4>
+            <p>Our support team is available 24/7</p>
+            <button className="rentBtn">Chat Now</button>
+          </div>
 
-<div className="invoice">
-<h4>Recent Invoices</h4>
-<p>Download your latest statements</p>
-<button className="rentBtn">View All</button>
-</div>
+          <div className="invoice">
+            <h4>Recent Invoices</h4>
+            <p>Download your latest statements</p>
+            <button className="rentBtn">View All</button>
+          </div>
 
-</div>
+        </div>
 
-</main>
+      </main>
 
-</div>
+    </div>
 
-);
+  );
 
 };

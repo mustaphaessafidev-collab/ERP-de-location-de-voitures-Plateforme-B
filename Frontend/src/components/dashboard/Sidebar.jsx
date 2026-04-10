@@ -1,6 +1,6 @@
 import React from "react";
 import "./Sidebar.css";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Car,
@@ -49,7 +49,7 @@ export default function Sidebar() {
 
       </nav>
 
-      <button className="rentBtn">Rent a Car</button>
+      <button className="rentBtn"><Link to="/VehicleCatalogPage">Rent a Car</Link></button>
 
     </aside>
   );
