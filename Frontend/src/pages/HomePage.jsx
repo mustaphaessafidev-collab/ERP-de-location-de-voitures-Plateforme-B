@@ -42,7 +42,7 @@ export default function HomePage() {
       prev === 0 ? heroImages.length - 1 : prev - 1
     );
   };
-
+ // Filtrer uniquement les véhicules disponibles + limiter à 4
   const popularVehicles = vehiclesData.data
     .filter((vehicle) => vehicle.statut === "disponible")
     .slice(0, 4);
