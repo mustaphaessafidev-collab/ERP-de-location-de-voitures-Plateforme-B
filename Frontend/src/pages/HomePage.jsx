@@ -15,7 +15,7 @@ import { Car, Users } from "lucide-react";
 export default function HomePage() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-
+// Liste des images du carousel (useMemo pour éviter re-render inutile)
   const heroImages = useMemo(
     () => [
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80",
