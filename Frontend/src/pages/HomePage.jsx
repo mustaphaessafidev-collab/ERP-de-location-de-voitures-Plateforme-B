@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import vehiclesData from "../fake-data/vehicules-api.json";
+// Icônes supplémentaires pour les cartes véhicules
 import { Car, Users } from "lucide-react";
 export default function HomePage() {
   const navigate = useNavigate();
