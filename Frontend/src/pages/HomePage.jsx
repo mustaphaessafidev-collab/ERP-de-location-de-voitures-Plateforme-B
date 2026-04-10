@@ -214,8 +214,6 @@ export default function HomePage() {
   </div>
 </section>
 
-
-
       {/* FEATURES */}
       <section className="mx-auto w-[94%] py-6 sm:w-[92%] sm:py-8">
         <div className="mb-8 text-center">
@@ -261,6 +259,36 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      {/* CTA SECTION */}
+<section className="mx-auto w-[94%] py-12 sm:w-[92%]">
+  <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14">
+    
+    <h2 className="text-2xl font-bold sm:text-3xl">
+      Prêt à réserver votre prochain véhicule ?
+    </h2>
+
+    <p className="mt-3 text-sm text-blue-100 sm:text-base">
+      Consultez notre catalogue et choisissez la voiture qui correspond à vos besoins.
+    </p>
+
+    <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+      
+      <button
+        onClick={() => navigate("/VehicleCatalogPage")}
+        className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-blue-600 transition hover:bg-blue-100"
+      >
+        Réserver maintenant
+      </button>
+
+      <button
+        onClick={() => navigate("/VehicleCatalogPage")}
+        className="rounded-xl border border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+      >
+        Voir le catalogue
+      </button>
+    </div>
+  </div>
+</section>
     </main>
   );
 }
