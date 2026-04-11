@@ -202,9 +202,17 @@ export default function Reservation() {
     
     setIsLoading(true);
     try {
+      // Get user ID from localStorage
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id;
+
+      if (!userId) {
+        throw new Error("User not authenticated. Please login again.");
+      }
+
       // Prepare reservation payload (field names match backend database schema)
       const reservationPayload = {
-        client_id: 1, // Temporary - will be replaced with actual user ID
+        client_id: userId,
         vehicle_id: bookingData?.vehicleId,
         date_debut: bookingData?.pickUpDate,
         date_fin: bookingData?.returnDate,
@@ -212,6 +220,7 @@ export default function Reservation() {
         nombre_jours: bookingData?.numberDays,
       };
 
+      console.log("[FRONTEND] User ID from localStorage:", userId);
       console.log("[FRONTEND] Sending reservation to API Gateway:", reservationPayload);
 
       // Make API call to API Gateway (port 4000) which forwards to Reservation Service (port 5003)
@@ -219,6 +228,8 @@ export default function Reservation() {
         "http://localhost:4000/api/reservations",
         reservationPayload
       );
+
+      const reservation = response.data;
 
       console.log("[FRONTEND] Reservation created successfully:", response.data);
 
@@ -229,13 +240,25 @@ export default function Reservation() {
         `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
         reservationId
       );
+
+      // ✅ 2. API notification (service) - Only after successful reservation
+      console.log("[FRONTEND] Creating notification for userId:", String(userId));
+      await axios.post("http://localhost:4004/api/notifications", {
+        userId: String(userId),
+        type: "RESERVATION",
+        title: "Reservation Created",
+        message: "Your reservation has been created successfully.",
+        referenceId: String(reservation.id),
+      });
+      
+      console.log("[FRONTEND] Notification created successfully");
     } catch (error) {
       console.error("[FRONTEND] Error creating reservation:", error);
       console.error("[FRONTEND] Error response data:", error.response?.data);
       addNotification(
         "error",
         "Erreur lors de la création ❌",
-        error.response?.data?.error || error.response?.data?.message || "Une erreur s'est produite lors de la création de la réservation.",
+        error.response?.data?.error || error.response?.data?.message || error.message || "Une erreur s'est produite lors de la création de la réservation.",
         reservationId
       );
     } finally {

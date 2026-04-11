@@ -1,77 +1,107 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import {
-  fetchNotifications,
+  getUserNotifications,
   createNotification,
-  markAllNotificationsRead,
+  markAllNotificationsAsRead,
   deleteAllNotifications,
-  markNotificationRead,
+  markNotificationAsRead,
   deleteNotification,
-} from "../services/notification.js";
+} from "../services/notificationService";
 
 const NotificationContext = createContext(null);
-
-// Email simulé — à remplacer par le vrai email de l'utilisateur connecté (auth context)
-const CURRENT_USER_EMAIL = "user@driveease.ma";
 
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Get userId from localStorage
+  const getUserId = useCallback(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    return user?.id ? String(user.id) : null;
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  // Charger les notifications depuis l'API
+  // Load notifications from API
   const loadNotifications = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) {
+      console.warn("No userId, skipping load");
+      setNotifications([]);
+      return;
+    }
+
     setLoading(true);
     try {
-      const data = await fetchNotifications(CURRENT_USER_EMAIL);
-      setNotifications(data);
-    } catch {
-      // API non disponible → fallback silencieux
+      const data = await getUserNotifications(userId);
+      console.log("[NotificationContext] Loaded data:", data);
+
+      // ✅ Extract notifications array from response
+      const notificationsArray = data?.notifications || data || [];
+      
+      // Ensure it's always an array
+      if (Array.isArray(notificationsArray)) {
+        setNotifications(notificationsArray);
+      } else {
+        console.warn("Notifications is not an array:", data);
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error("[NotificationContext] Load error:", error);
       setNotifications([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getUserId]);
 
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);
 
   /**
-   * Ajoute une notification via l'API ET l'affiche immédiatement (optimistic UI)
+   * Add notification with optimistic UI update
    */
   const addNotification = useCallback(
-    async (type, title, message, reservationId = null) => {
+    async (type, title, message, referenceId = null) => {
+      const userId = getUserId();
+      if (!userId) {
+        console.warn("No userId for addNotification");
+        return;
+      }
+
       // Optimistic update
       const temp = {
-        id: Date.now(),
-        userEmail: CURRENT_USER_EMAIL,
+        id: Date.now().toString(),
+        userId,
         type,
         title,
         message,
-        reservationId,
+        referenceId,
         isRead: false,
         createdAt: new Date().toISOString(),
       };
       setNotifications((prev) => [temp, ...prev]);
 
       try {
-        const created = await createNotification({
-          userEmail: CURRENT_USER_EMAIL,
+        const response = await createNotification({
+          userId,
           type,
           title,
           message,
-          reservationId,
+          referenceId,
         });
-        // Remplace l'entrée temporaire par l'entrée réelle de l'API
+
+        // Replace temp with actual
+        const created = response?.notification || response;
         setNotifications((prev) =>
           prev.map((n) => (n.id === temp.id ? created : n))
         );
-      } catch {
-        // Si l'API échoue, garder la version optimiste
+      } catch (error) {
+        console.error("[NotificationContext] Create error:", error);
+        // Keep optimistic update
       }
     },
-    []
+    [getUserId]
   );
 
   const markOneRead = useCallback(async (id) => {
@@ -79,38 +109,44 @@ export function NotificationProvider({ children }) {
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
     );
     try {
-      await markNotificationRead(id);
-    } catch {
-      // ignore
+      await markNotificationAsRead(id);
+    } catch (error) {
+      console.error("[NotificationContext] Mark one error:", error);
     }
   }, []);
 
   const markAllRead = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) return;
+
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     try {
-      await markAllNotificationsRead(CURRENT_USER_EMAIL);
-    } catch {
-      // ignore
+      await markAllNotificationsAsRead(userId);
+    } catch (error) {
+      console.error("[NotificationContext] Mark all error:", error);
     }
-  }, []);
+  }, [getUserId]);
 
   const removeOne = useCallback(async (id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     try {
       await deleteNotification(id);
-    } catch {
-      // ignore
+    } catch (error) {
+      console.error("[NotificationContext] Delete one error:", error);
     }
   }, []);
 
   const clearAll = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) return;
+
     setNotifications([]);
     try {
-      await deleteAllNotifications(CURRENT_USER_EMAIL);
-    } catch {
-      // ignore
+      await deleteAllNotifications(userId);
+    } catch (error) {
+      console.error("[NotificationContext] Delete all error:", error);
     }
-  }, []);
+  }, [getUserId]);
 
   return (
     <NotificationContext.Provider
@@ -133,6 +169,9 @@ export function NotificationProvider({ children }) {
 
 export function useNotifications() {
   const ctx = useContext(NotificationContext);
-  if (!ctx) throw new Error("useNotifications doit être utilisé dans <NotificationProvider>");
+  if (!ctx)
+    throw new Error(
+      "useNotifications must be used within <NotificationProvider>"
+    );
   return ctx;
 }
