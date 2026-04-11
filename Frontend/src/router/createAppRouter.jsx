@@ -12,12 +12,12 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
-<<<<<<< HEAD
+
 import DriveEaseProfile from "../components/profile/DriveEaseProfile";
-=======
+
 import ReservationSuccessPage from "../pages/ReservationSuccessPage";
 import ReviewsPage from "../pages/ReviewsPage";
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
+
 
 
 const guestAuthRoutes = mapRoutesToRouter([

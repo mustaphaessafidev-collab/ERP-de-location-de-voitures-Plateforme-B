@@ -5,14 +5,14 @@
 export interface User {
   id: number;
   nom_complet: string;
-<<<<<<< HEAD
-  cin: string;
+
+  
   num_permis?: string | null;
-  telephone: string;
-=======
+ 
+
   cin?: string | null;
   telephone?: string | null;
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
+
   email: string;
   adresse: string | null;
   profilePhotoData?: string | null;
