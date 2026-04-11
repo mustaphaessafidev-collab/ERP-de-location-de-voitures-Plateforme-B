@@ -1,9 +1,10 @@
 import { jsPDF } from "jspdf";
+import axios from "axios";
 import { useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaClock, FaMapMarkerAlt, FaPhone, FaRoad } from "react-icons/fa";
 import { useNotifications } from "../../context/NotificationContext";
-
+import { FaCar } from "react-icons/fa";
 // ===== HELPER FUNCTIONS =====
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
@@ -87,6 +88,7 @@ export default function Reservation() {
   
   // State management - minimal
   const [reservationStatus, setReservationStatus] = useState("Confirmed");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Extract booking data with defaults
   const reservationId = bookingData?.reservationId || "#782910";
@@ -190,22 +192,56 @@ export default function Reservation() {
     doc.save(`invoice-${reservationId.replace("#", "")}.pdf`);
   }, [reservationId, reservationStatus, vehicleImage, vehicleName, agency, pickUpFormatted, returnFormatted, days, basePrice, insurancePrice, serviceFee, totalPrice]);
 
-  const handleConfirm = useCallback(() => {
-    // Console logging only HERE - for debugging
-    console.log("=== Reservation Confirm ===");
-    console.log("Booking Data:", bookingData);
-    console.log("Pick-up:", bookingData?.pickUpDate, bookingData?.pickUpTime);
-    console.log("Return:", bookingData?.returnDate, bookingData?.returnTime);
-    console.log("Progress:", progressData);
-    console.log("=== End Debug ===");
+  const handleConfirm = useCallback(async () => {
+    // Console logging for debugging
+    console.log("[FRONTEND] === Reservation Confirm ===");
+    console.log("[FRONTEND] Booking Data:", bookingData);
+    console.log("[FRONTEND] Pick-up:", bookingData?.pickUpDate, bookingData?.pickUpTime);
+    console.log("[FRONTEND] Return:", bookingData?.returnDate, bookingData?.returnTime);
+    console.log("[FRONTEND] Progress:", progressData);
     
-    setReservationStatus("Confirmed");
-    addNotification(
-      "success",
-      "Réservation confirmée ✅",
-      `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
-      reservationId
-    );
+    setIsLoading(true);
+    try {
+      // Prepare reservation payload (field names match backend database schema)
+      const reservationPayload = {
+        client_id: 1, // Temporary - will be replaced with actual user ID
+        vehicle_id: bookingData?.vehicleId,
+        date_debut: bookingData?.pickUpDate,
+        date_fin: bookingData?.returnDate,
+        prix: bookingData?.totalPrice,
+        nombre_jours: bookingData?.numberDays,
+      };
+
+      console.log("[FRONTEND] Sending reservation to API Gateway:", reservationPayload);
+
+      // Make API call to API Gateway (port 4000) which forwards to Reservation Service (port 5003)
+      const response = await axios.post(
+        "http://localhost:4000/api/reservations",
+        reservationPayload
+      );
+
+      console.log("[FRONTEND] Reservation created successfully:", response.data);
+
+      setReservationStatus("Confirmed");
+      addNotification(
+        "success",
+        "Réservation confirmée ✅",
+        `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
+        reservationId
+      );
+    } catch (error) {
+      console.error("[FRONTEND] Error creating reservation:", error);
+      console.error("[FRONTEND] Error response data:", error.response?.data);
+      addNotification(
+        "error",
+        "Erreur lors de la création ❌",
+        error.response?.data?.error || error.response?.data?.message || "Une erreur s'est produite lors de la création de la réservation.",
+        reservationId
+      );
+    } finally {
+      setIsLoading(false);
+    }
+    console.log("[FRONTEND] === End Debug ===");
   }, [bookingData, progressData, reservationId, vehicleName, addNotification]);
 
   const handleCancel = useCallback(() => {
@@ -277,7 +313,7 @@ export default function Reservation() {
                   "bg-slate-100 text-slate-700"
                 }`}>
                   {progressData.currentStep === "completed" && "✓ Completed"}
-                  {progressData.currentStep === "in-progress" && "🚗 In Progress"}
+                  {progressData.currentStep === "in-progress" && <><FaCar />   In Progress</>}
                   {progressData.currentStep === "reserved" && "📅 Upcoming"}
                 </div>
                 <span className="text-sm font-semibold text-slate-600">
@@ -301,7 +337,7 @@ export default function Reservation() {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { name: "reserved", label: "Reservation", icon: "✓", date: new Date().toLocaleDateString() },
-                  { name: "pickup", label: "Pick-up", icon: "🚗", date: bookingData?.pickUpDate },
+                  { name: "pickup", label: "Pick-up", icon: <FaCar />, date: bookingData?.pickUpDate },
                   { name: "return", label: "Return", icon: "✓", date: bookingData?.returnDate }
                 ].map((step) => {
                   const styles = getStepStyles(progressData.currentStep, step.name);
@@ -455,13 +491,23 @@ export default function Reservation() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={handleConfirm}
-                className="flex-1 sm:flex-none rounded-lg border border-slate-300 bg-white px-5 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none rounded-lg border border-slate-300 bg-white px-5 py-2 font-semibold transition-colors ${
+                  isLoading
+                    ? "opacity-50 cursor-not-allowed text-slate-500"
+                    : "text-slate-700 hover:bg-slate-50"
+                }`}
               >
-                Confirm
+                {isLoading ? "Confirming..." : "Confirm"}
               </button>
               <button
                 onClick={handleCancel}
-                className="flex-1 sm:flex-none rounded-lg border border-red-300 bg-white px-5 py-2 font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none rounded-lg border border-red-300 bg-white px-5 py-2 font-semibold transition-colors ${
+                  isLoading
+                    ? "opacity-50 cursor-not-allowed text-red-400"
+                    : "text-red-600 hover:bg-red-50"
+                }`}
               >
                 Cancel
               </button>
