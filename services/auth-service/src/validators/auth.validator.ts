@@ -7,21 +7,21 @@ const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\
 
 const passwordSchema = z
   .string()
-  .min(8, "Password must be at least 8 characters")
+  .min(8, "Le mot de passe doit contenir au moins 8 caractères")
   .regex(
     PASSWORD_PATTERN,
-    "Password must contain at least one uppercase, one lowercase and one special character"
+    "Le mot de passe doit contenir au moins une majuscule, une minuscule et un caractère spécial"
   );
 
 const emailSchema = z
   .string()
-  .email("Invalid email")
-  .max(EMAIL_MAX_LENGTH, `Email must be at most ${EMAIL_MAX_LENGTH} characters`);
+  .email("Email invalide")
+  .max(EMAIL_MAX_LENGTH, `L'e-mail doit faire au plus ${EMAIL_MAX_LENGTH} caractères`);
 
 export const registerSchema = z.object({
-  nom_complet: z.string().min(1, "Full name is required").max(200),
-  cin: z.string().min(1, "CIN is required").max(50),
-  telephone: z.string().min(1, "Phone is required").max(20),
+  nom_complet: z.string().min(1, "Le nom complet est requis").max(200),
+  cin: z.string().max(50).optional(),
+  telephone: z.string().max(20).optional(),
   email: emailSchema,
   adresse: z.string().max(500).optional(),
   password: passwordSchema,
@@ -29,12 +29,12 @@ export const registerSchema = z.object({
   recaptchaToken: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   path: ["confirmPassword"],
-  message: "Password and confirm password must be the same",
+  message: "Le mot de passe et sa confirmation doivent être identiques",
 });
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Le mot de passe est requis"),
   recaptchaToken: z.string().optional(),
 });
 
@@ -44,12 +44,12 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Reset token is required"),
+  token: z.string().min(1, "Le jeton de réinitialisation est requis"),
   password: passwordSchema,
   confirmPassword: passwordSchema,
 }).refine((data) => data.password === data.confirmPassword, {
   path: ["confirmPassword"],
-  message: "Password and confirm password must be the same",
+  message: "Le mot de passe et sa confirmation doivent être identiques",
 });
 
 export const updatePasswordSchema = z.object({
@@ -59,16 +59,16 @@ export const updatePasswordSchema = z.object({
   confirmPassword: passwordSchema,
 }).refine((data) => data.newPassword === data.confirmPassword, {
   path: ["confirmPassword"],
-  message: "New password and confirm password must be the same",
+  message: "Le nouveau mot de passe et sa confirmation doivent être identiques",
 });
 
 /** 6-digit verification code from email */
 export const validateEmailSchema = z.object({
   otp: z
     .string()
-    .min(1, "Verification code is required")
-    .length(6, "Code must be 6 digits")
-    .regex(/^\d{6}$/, "Code must be exactly 6 digits"),
+    .min(1, "Le code de vérification est requis")
+    .length(6, "Le code doit comporter 6 chiffres")
+    .regex(/^\d{6}$/, "Le code doit comporter exactement 6 chiffres"),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

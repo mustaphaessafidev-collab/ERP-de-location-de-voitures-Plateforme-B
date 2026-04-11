@@ -13,20 +13,35 @@ function NotificationsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [favorites, setFavorites] = useState([]);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userId = user?.id || "user_123";
+const user = JSON.parse(localStorage.getItem("user"));
+console.log(user)
+const userId = String(user?.id);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const data = await getUserNotifications(userId);
-      setNotifications(data.notifications || []);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    } finally {
-      setLoading(false);
+const fetchNotifications = async () => {
+  try {
+    setLoading(true);
+    const data = await getUserNotifications(userId);
+
+    console.log("NOTIFICATIONS DATA:", data);
+
+    // ✅ Handle response properly
+    // Backend returns: { success: true, notifications: [...] }
+    const notificationsArray = data?.notifications || data || [];
+    
+    // Ensure it's always an array
+    if (Array.isArray(notificationsArray)) {
+      setNotifications(notificationsArray);
+    } else {
+      setNotifications([]);
+      console.warn("API response notifications is not an array:", data);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch notifications:", error);
+    setNotifications([]);
+  } finally {
+    setLoading(false);
+  }
+}
 
   useEffect(() => {
     if (userId) fetchNotifications();

@@ -1,0 +1,9 @@
+{
+  "name": "car-rental-erp-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently \"npm run dev --prefix services/api-gateway\" \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/review-service\" \"npm run dev --prefix services/catalog-reservation-service\" \"npm run dev --prefix Frontend\"",
+    "install:all": "npm install --prefix services/api-gateway && npm install --prefix services/auth-service && npm install --prefix services/catalog-reservation-service && npm install --prefix services/review-service && npm install --prefix Frontend"
+  }
+}

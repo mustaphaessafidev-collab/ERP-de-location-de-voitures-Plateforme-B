@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import "dotenv/config";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 dotenv.config();
@@ -26,49 +27,55 @@ app.use(
     ignorePath: false,
   })
 );
+app.use(
+  "/api/admin",
+  createProxyMiddleware({
+    target: process.env.ADMIN_SERVICE_URL,
+    changeOrigin: true,
+  })
+);
 
-//test github
-// app.use(
-//   "/api/reservations",
-//   createProxyMiddleware({
-//     target: process.env.AUTH_SERVICE_URL,
-//     changeOrigin: true,
-//     pathRewrite: { "^/api/reservations": "/api/reservations" },
-//   })
-// );
+app.use(
+  "/api/users",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/admin": "", 
+    },
+  })
+);
 
-// app.use(
-//   "/api/notifications",
-//   createProxyMiddleware({
-//     target: process.env.AUTH_SERVICE_URL,
-//     changeOrigin: true,
-//     pathRewrite: { "^/api/notifications": "/api/notifications" },
-//   })
-// );
+app.use(
+  "/api/agents",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
 
+  })
+);
 
-// app.use(
-//   "/api/tickets",
-//   createProxyMiddleware({
-//     target: process.env.TICKET_SERVICE_URL,
-//     changeOrigin: true,
-//   })
-// );
+app.use(
+  "/api/tickets",
+  createProxyMiddleware({
+    target: `${process.env.TICKET_SERVICE_URL}/api/tickets`,
+    changeOrigin: true,
+  })
+);
 
-// app.use(
-//   "/api/admin",
-//   createProxyMiddleware({
-//     target: process.env.ADMIN_SERVICE_URL,
-//     changeOrigin: true,
-//   })
-// );
+app.use(
+  "/api/ai",
+  createProxyMiddleware({
+    target: process.env.AI_SERVICE_URL,
+    changeOrigin: true,
+  })
+);
 
-// app.use(
-//   "/api/ai",
-//   createProxyMiddleware({
-//     target: process.env.AI_SERVICE_URL,
-//     changeOrigin: true,
-//   })
-// );
-
+app.use(
+  "/api/reservations",
+  createProxyMiddleware({
+    target: process.env.RESERVATION_SERVICE_URL,
+    changeOrigin: true,
+  })
+);
 export default app;
