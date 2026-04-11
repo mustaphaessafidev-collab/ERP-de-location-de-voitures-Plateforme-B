@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx concurrently \"npm run dev --prefix services/api-gateway\" \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/review-service\" \"npm run dev --prefix Frontend\"",
-    "install:all": "npm install --prefix services/api-gateway && npm install --prefix services/auth-service && npm install --prefix Frontend"
-  },
-  "description": "Root package.json for starting all services concurrently. Do not commit if tracking other project members' work specifically."
+    "dev": "npx concurrently \"npm run dev --prefix services/api-gateway\" \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/review-service\" \"npm run dev --prefix services/catalog-reservation-service\" \"npm run dev --prefix Frontend\"",
+    "install:all": "npm install --prefix services/api-gateway && npm install --prefix services/auth-service && npm install --prefix services/catalog-reservation-service && npm install --prefix services/review-service && npm install --prefix Frontend"
+  }
 }
