@@ -1,15 +1,18 @@
-
 const toBoolean = (value: string | undefined, defaultValue: boolean) => {
   return value?.toLowerCase() === "true" ? true : value?.toLowerCase() === "false" ? false : defaultValue;
 };
 
 const toNumber = (value: string | undefined, defaultValue: number) => {
+<<<<<<< HEAD
   const num = Number(value);
   return isNaN(num) ? defaultValue : num;
+=======
+  return parseInt(`${value}`) || defaultValue;
+>>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
 };
 
 const toString = (value: string | undefined, defaultValue: string) => {
-  return String(value) ?? defaultValue;
+  return String(value) || defaultValue;
 };
 
 const isAwsRdsConnectionString = (url: string) => /\.rds\.amazonaws\.com/i.test(url);

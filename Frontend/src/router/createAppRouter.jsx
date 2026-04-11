@@ -2,9 +2,9 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { mapRoutesToRouter } from "../helpers/routeHelpers";
 import AppLayout from "../layouts/AppLayout";
 import { guestRouteLoader, privateRouteLoader } from "./authLoaders";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import ValidateEmailPage from "../pages/ValidateEmailPage";
+import LoginPage from "../components/auth/LoginPage";
+import RegisterPage from "../components/auth/RegisterPage";
+import ValidateEmailPage from "../components/auth/ValidateEmailPage";
 import VehicleCatalogPage from "../pages/VehicleCatalogPage";
 import VehicleDetailsPage from "../pages/VehicleDetailsPage";
 import ReservationPage from "../components/reservation/Reservation";
@@ -12,7 +12,12 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
+<<<<<<< HEAD
 import DriveEaseProfile from "../components/profile/DriveEaseProfile";
+=======
+import ReservationSuccessPage from "../pages/ReservationSuccessPage";
+import ReviewsPage from "../pages/ReviewsPage";
+>>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -30,7 +35,7 @@ const publicRoutes = mapRoutesToRouter([
   },
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
-  
+  { path: "/notifications", element: <NotificationsPage /> },
 
 ]);
 
@@ -76,11 +81,12 @@ const privateRoutes = mapRoutesToRouter([
     ),
   },
 
-  
+  { path: "/booking-review", element: <ReservationPage /> },
   { path: "/notifications", element: <NotificationsPage /> },
+  { path: "/reviews", element: <ReviewsPage /> },
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
-  { path: "/booking-review", element: <ReservationPage /> },
+  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },
 ]);
 
 export function createAppRouter() {

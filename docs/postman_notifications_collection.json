@@ -1,0 +1,110 @@
+{
+  "info": {
+    "name": "ERP DriveEase - Notifications API",
+    "description": "Collection Postman pour tester l'API des notifications liées aux réservations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:8000/api" },
+    { "key": "USER_EMAIL", "value": "user@driveease.ma" },
+    { "key": "NOTIF_ID", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. Créer une notification (succès)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{BASE_URL}}/notifications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userEmail\": \"{{USER_EMAIL}}\",\n  \"type\": \"success\",\n  \"title\": \"Réservation confirmée ✅\",\n  \"message\": \"Votre réservation RES-001 pour Tesla Model 3 a été confirmée.\",\n  \"reservationId\": \"RES-001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Créer une notification (annulation)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{BASE_URL}}/notifications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userEmail\": \"{{USER_EMAIL}}\",\n  \"type\": \"error\",\n  \"title\": \"Réservation annulée ❌\",\n  \"message\": \"La réservation RES-001 a été annulée.\",\n  \"reservationId\": \"RES-001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Créer une notification (info modification)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{BASE_URL}}/notifications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userEmail\": \"{{USER_EMAIL}}\",\n  \"type\": \"info\",\n  \"title\": \"Modification en cours ✏️\",\n  \"message\": \"Vous modifiez la réservation RES-001 pour Tesla Model 3.\",\n  \"reservationId\": \"RES-001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Lister les notifications d'un utilisateur",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{BASE_URL}}/notifications?email={{USER_EMAIL}}",
+          "host": ["{{BASE_URL}}/notifications"],
+          "query": [{ "key": "email", "value": "{{USER_EMAIL}}" }]
+        }
+      }
+    },
+    {
+      "name": "5. Marquer une notification comme lue",
+      "request": {
+        "method": "PATCH",
+        "url": "{{BASE_URL}}/notifications/{{NOTIF_ID}}/read"
+      }
+    },
+    {
+      "name": "6. Marquer TOUTES les notifications comme lues",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{BASE_URL}}/notifications/read-all",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{USER_EMAIL}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Supprimer une notification",
+      "request": {
+        "method": "DELETE",
+        "url": "{{BASE_URL}}/notifications/{{NOTIF_ID}}"
+      }
+    },
+    {
+      "name": "8. Supprimer TOUTES les notifications",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{BASE_URL}}/notifications?email={{USER_EMAIL}}",
+          "host": ["{{BASE_URL}}/notifications"],
+          "query": [{ "key": "email", "value": "{{USER_EMAIL}}" }]
+        }
+      }
+    },
+    {
+      "name": "9. Confirmer une réservation (auto-notification)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{BASE_URL}}/reservations/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{USER_EMAIL}}\",\n  \"vehicleName\": \"Tesla Model 3 - 2023\",\n  \"vehicleId\": 1,\n  \"agency\": \"Berlin Brandenburg Airport\",\n  \"city\": \"Terminal 1\",\n  \"pickUp\": \"May 29, 2026 10:00 AM\",\n  \"returnDrop\": \"Jun 03, 2026 10:00 AM\",\n  \"days\": 5,\n  \"totalAmount\": 555.00\n}"
+        }
+      }
+    }
+  ]
+}

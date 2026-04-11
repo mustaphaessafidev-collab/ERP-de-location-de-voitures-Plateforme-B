@@ -10,10 +10,10 @@ export const createNotification = async (req, res) => {
         message: "userId, type and message are required",
       });
     }
-
+    
     const notification = await prisma.notification.create({
       data: {
-        userId,
+        userId: String(userId),
         userRole: userRole || "CLIENT",
         type,
         title,
@@ -118,6 +118,27 @@ export const deleteNotification = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error while deleting notification",
+    });
+  }
+};
+
+export const deleteAllNotifications = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    await prisma.notification.deleteMany({
+      where: { userId: String(userId) },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "All notifications deleted successfully",
+    });
+  } catch (error) {
+    console.error("deleteAllNotifications error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while deleting all notifications",
     });
   }
 };

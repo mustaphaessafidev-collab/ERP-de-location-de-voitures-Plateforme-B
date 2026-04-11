@@ -35,16 +35,14 @@ export const NAV_ROUTE_DEFS = [
     activeMatch: "prefix",
     icon: "Calendar",
   },
-
   {
-    path: "/booking-review",
-    label: "Réservation en cours",
+    path: "/reviews",
+    label: "Avis",
     isPrivate: true,
     showInNavbar: true,
-    activeMatch: "prefix",
-    icon: "CircleDashed",
+    activeMatch: "exact",
+    icon: "Star",
   },
-
 ];
 
 /** Used by isPrivateRoute — any path matching these is treated as private. */
@@ -53,6 +51,7 @@ export const PRIVATE_ROUTE_MATCHERS = [
   (pathname) => pathname.startsWith("/bookings"),
   (pathname) => pathname.startsWith("/profile"),
   (pathname) => pathname.startsWith("/settings"),
+  (pathname) => pathname.startsWith("/reviews"),
   (pathname) => pathname === "/reservation" || pathname.startsWith("/reservation/"),
   (pathname) => pathname === "/booking-review" || pathname.startsWith("/booking-review/"),
   (pathname) => pathname === "/test" || pathname.startsWith("/test/"),

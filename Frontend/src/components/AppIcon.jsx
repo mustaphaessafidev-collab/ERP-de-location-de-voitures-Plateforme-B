@@ -4,13 +4,13 @@ import logoUrl from "../assets/icon.svg";
 /**
  * App home control: logo + product name — navigates via button + navigate().
  * Brand mark: `src/assets/icon.svg` (swap file to update the navbar logo).
- * @param {string} [to="/VehicleCatalogPage"]
+ * @param {string} [to="/"]
  * @param {string} [title="DriveEase ERP"]
  * @param {string} [className] — extra classes on the button
  * @param {string} [imgClassName] — extra classes on the logo `<img>`
  */
 export default function AppIcon({
-  to = "/VehicleCatalogPage",
+  to = "/",
   title = "DriveEase ERP",
   className = "",
   imgClassName = "",

@@ -1,8 +1,11 @@
-import { Clock3, FileText, MapPin, Phone, Route, Download } from "lucide-react";
 import { jsPDF } from "jspdf";
-import { useState } from "react";
+import axios from "axios";
+import { useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { FaClock, FaMapMarkerAlt, FaPhone, FaRoad } from "react-icons/fa";
+import { useNotifications } from "../../context/NotificationContext";
+import { FaCar } from "react-icons/fa";
+// ===== HELPER FUNCTIONS =====
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
   const date = new Date(`${dateStr}T${timeStr || "10:00"}`);
@@ -19,25 +22,51 @@ function formatMoney(value) {
   return `${Number(value || 0).toFixed(2)} DH`;
 }
 
-function downloadPdf({ filename, title, lines }) {
-  const doc = new jsPDF();
-  let y = 20;
+// Calculate rental progress based on current time
+function calculateProgress(pickUpDate, returnDate) {
+  const now = new Date();
+  const pickUp = new Date(`${pickUpDate}T10:00`);
+  const returnDt = new Date(`${returnDate}T18:00`);
+  
+  const totalDuration = returnDt.getTime() - pickUp.getTime();
+  const elapsedTime = now.getTime() - pickUp.getTime();
+  const progressPercent = Math.max(0, Math.min(100, (elapsedTime / totalDuration) * 100));
+  
+  let currentStep = "reserved";
+  if (now < pickUp) {
+    currentStep = "reserved";
+  } else if (now >= pickUp && now < returnDt) {
+    currentStep = "in-progress";
+  } else {
+    currentStep = "completed";
+  }
+  
+  return { progressPercent, currentStep };
+}
 
-  doc.setFontSize(16);
-  doc.text(title, 14, y);
-  y += 10;
-
-  doc.setFontSize(11);
-  lines.forEach((line) => {
-    doc.text(String(line), 14, y);
-    y += 7;
-    if (y > 275) {
-      doc.addPage();
-      y = 20;
-    }
-  });
-
-  doc.save(filename);
+// Helper to get step styling
+function getStepStyles(currentStep, stepName) {
+  const isActive = (stepName === "reserved" && currentStep !== "in-progress" && currentStep !== "completed") ||
+                   (stepName === "pickup" && (currentStep === "in-progress" || currentStep === "completed")) ||
+                   (stepName === "return" && currentStep === "completed");
+  
+  const isCompleted =
+    (stepName === "reserved") ||
+    (stepName === "pickup" && (currentStep === "in-progress" || currentStep === "completed")) ||
+    (stepName === "return" && currentStep === "completed");
+  
+  return {
+    container: `rounded-lg border-2 p-3 transition-all ${
+      isCompleted ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"
+    }`,
+    icon: `flex h-9 w-9 items-center justify-center rounded-full border-2 mx-auto mb-2 text-sm font-bold ${
+      isCompleted ? "border-blue-500 bg-blue-100 text-blue-600" : "border-slate-300 bg-white text-slate-400"
+    }`,
+    text: `text-xs font-semibold text-center ${
+      isActive ? "text-blue-700" : "text-slate-700"
+    }`,
+    date: "text-[11px] text-slate-500 text-center mt-1"
+  };
 }
 
 async function imageUrlToDataUrl(imageUrl) {
@@ -54,19 +83,21 @@ async function imageUrlToDataUrl(imageUrl) {
 export default function Reservation() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { addNotification } = useNotifications();
   const bookingData = state?.bookingData ?? state;
+  
+  // State management - minimal
   const [reservationStatus, setReservationStatus] = useState("Confirmed");
-  const [showPickUpPlanning, setShowPickUpPlanning] = useState(false);
-  const [selectedPlanningSlots, setSelectedPlanningSlots] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Extract booking data with defaults
   const reservationId = bookingData?.reservationId || "#782910";
   const days = bookingData?.numberDays ?? 5;
   const basePrice = bookingData?.basePrice ?? 425;
   const insurancePrice = bookingData?.insurancePrice ?? 75;
   const serviceFee = bookingData?.serviceFee ?? 55;
   const taxes = bookingData?.taxes ?? 0;
-  const totalPrice =
-    bookingData?.totalPrice ?? basePrice + insurancePrice + serviceFee + taxes;
+  const totalPrice = bookingData?.totalPrice ?? basePrice + insurancePrice + serviceFee + taxes;
   const vehicleName = bookingData?.vehicleName || "Tesla Model 3 - 2023";
   const vehicleImage =
     bookingData?.vehicleImage ||
@@ -76,56 +107,38 @@ export default function Reservation() {
   const pickUpFormatted = formatDate(bookingData?.pickUpDate, bookingData?.pickUpTime);
   const returnFormatted = formatDate(bookingData?.returnDate, bookingData?.returnTime);
   const isCancelled = reservationStatus === "Cancelled";
-  const planningDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const planningDates = [29, 30, 1, 2, 3, 4, 5];
-  const planningRows = [
-    {
-      label: "Haute saison : 120€/jour",
-      color: "bg-emerald-600",
-      textColor: "text-white",
-      segments: [
-        { start: 0, span: 5 },
-        { start: 5, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-        { start: 6, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-      ],
-    },
-    {
-      label: "Non disponible",
-      color: "bg-rose-600",
-      textColor: "text-white",
-      segments: [{ start: 0, span: 7 }],
-    },
-    {
-      label: "Haute saison : 120€/jour",
-      color: "bg-emerald-600",
-      textColor: "text-white",
-      segments: [
-        { start: 0, span: 5 },
-        { start: 5, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-        { start: 6, span: 1, note: "Fermé", noteColor: "bg-rose-100 text-rose-700" },
-      ],
-    },
-  ];
-  const selectedSlotsLabel = selectedPlanningSlots
-    .map((slot) => `${planningDays[slot.day]} ${planningDates[slot.day]}`)
-    .join(", ");
 
-  const handlePrint = () => window.print();
+  // Calculate progress
+  const progressData = useMemo(() => {
+    if (!bookingData?.pickUpDate || !bookingData?.returnDate) {
+      return { progressPercent: 0, currentStep: "reserved" };
+    }
+    return calculateProgress(bookingData.pickUpDate, bookingData.returnDate);
+  }, [bookingData?.pickUpDate, bookingData?.returnDate]);
 
-  const handleModify = () => {
+  // Handlers using useCallback
+  const handlePrint = useCallback(() => window.print(), []);
+
+  const handleModify = useCallback(() => {
+    addNotification(
+      "info",
+      "Modification en cours ✏️",
+      `Vous modifiez la réservation ${reservationId} pour ${vehicleName}.`,
+      reservationId
+    );
     if (bookingData?.vehicleId) {
       navigate(`/VehicleDetail/${bookingData.vehicleId}`);
-      return;
+    } else {
+      navigate("/VehicleCatalogPage");
     }
-    navigate("/VehicleCatalogPage");
-  };
+  }, [reservationId, vehicleName, bookingData?.vehicleId, navigate, addNotification]);
 
-  const handleOpenMap = (query) => {
+  const handleOpenMap = useCallback((query) => {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     window.open(url, "_blank", "noopener,noreferrer");
-  };
+  }, []);
 
-  const handleDownloadReceipt = async () => {
+  const handleDownloadReceipt = useCallback(async () => {
     const doc = new jsPDF();
     const yStart = 18;
 
@@ -177,40 +190,92 @@ export default function Reservation() {
     doc.text(`Total Amount: ${formatMoney(totalPrice)}`, 14, y);
 
     doc.save(`invoice-${reservationId.replace("#", "")}.pdf`);
-  };
+  }, [reservationId, reservationStatus, vehicleImage, vehicleName, agency, pickUpFormatted, returnFormatted, days, basePrice, insurancePrice, serviceFee, totalPrice]);
 
-  const handleDownloadDocument = (name, status) => {
-    if (status === "generating") return;
-    downloadPdf({
-      filename: `${name}-${reservationId.replace("#", "")}.pdf`,
-      title: name.replaceAll("_", " "),
-      lines: [
-        `Reservation: ${reservationId}`,
-        `Vehicle: ${vehicleName}`,
-        `Customer document status: ${status}`,
-        `Generated: ${new Date().toLocaleString()}`,
-      ],
-    });
-  };
+  const handleConfirm = useCallback(async () => {
+    // Console logging for debugging
+    console.log("[FRONTEND] === Reservation Confirm ===");
+    console.log("[FRONTEND] Booking Data:", bookingData);
+    console.log("[FRONTEND] Pick-up:", bookingData?.pickUpDate, bookingData?.pickUpTime);
+    console.log("[FRONTEND] Return:", bookingData?.returnDate, bookingData?.returnTime);
+    console.log("[FRONTEND] Progress:", progressData);
+    
+    setIsLoading(true);
+    try {
+      // Get user ID from localStorage
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id;
 
-  const togglePlanningSlot = (rowIndex, dayIndex) => {
-    const row = planningRows[rowIndex];
-    if (!row || row.color !== "bg-emerald-600") return;
-
-    setSelectedPlanningSlots((prev) => {
-      const exists = prev.some((slot) => slot.row === rowIndex && slot.day === dayIndex);
-      if (exists) {
-        return prev.filter((slot) => !(slot.row === rowIndex && slot.day === dayIndex));
+      if (!userId) {
+        throw new Error("User not authenticated. Please login again.");
       }
-      return [...prev, { row: rowIndex, day: dayIndex }];
-    });
-  };
 
-  const handleConfirm = () => {
-    setReservationStatus("Confirmed");
-    setShowPickUpPlanning(true);
-  };
-  const handleCancel = () => setReservationStatus("Cancelled");
+      // Prepare reservation payload (field names match backend database schema)
+      const reservationPayload = {
+        client_id: userId,
+        vehicle_id: bookingData?.vehicleId,
+        date_debut: bookingData?.pickUpDate,
+        date_fin: bookingData?.returnDate,
+        prix: bookingData?.totalPrice,
+        nombre_jours: bookingData?.numberDays,
+      };
+
+      console.log("[FRONTEND] User ID from localStorage:", userId);
+      console.log("[FRONTEND] Sending reservation to API Gateway:", reservationPayload);
+
+      // Make API call to API Gateway (port 4000) which forwards to Reservation Service (port 5003)
+      const response = await axios.post(
+        "http://localhost:4000/api/reservations",
+        reservationPayload
+      );
+
+      const reservation = response.data;
+
+      console.log("[FRONTEND] Reservation created successfully:", response.data);
+
+      setReservationStatus("Confirmed");
+      addNotification(
+        "success",
+        "Réservation confirmée ✅",
+        `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
+        reservationId
+      );
+
+      // ✅ 2. API notification (service) - Only after successful reservation
+      console.log("[FRONTEND] Creating notification for userId:", String(userId));
+      await axios.post("http://localhost:4004/api/notifications", {
+        userId: String(userId),
+        type: "RESERVATION",
+        title: "Reservation Created",
+        message: "Your reservation has been created successfully.",
+        referenceId: String(reservation.id),
+      });
+      
+      console.log("[FRONTEND] Notification created successfully");
+    } catch (error) {
+      console.error("[FRONTEND] Error creating reservation:", error);
+      console.error("[FRONTEND] Error response data:", error.response?.data);
+      addNotification(
+        "error",
+        "Erreur lors de la création ❌",
+        error.response?.data?.error || error.response?.data?.message || error.message || "Une erreur s'est produite lors de la création de la réservation.",
+        reservationId
+      );
+    } finally {
+      setIsLoading(false);
+    }
+    console.log("[FRONTEND] === End Debug ===");
+  }, [bookingData, progressData, reservationId, vehicleName, addNotification]);
+
+  const handleCancel = useCallback(() => {
+    setReservationStatus("Cancelled");
+    addNotification(
+      "error",
+      "Réservation annulée ❌",
+      `La réservation ${reservationId} pour ${vehicleName} a été annulée.`,
+      reservationId
+    );
+  }, [reservationId, vehicleName, addNotification]);
 
   return (
     <section className="min-h-[calc(100vh-4rem)] bg-slate-100 px-4 py-6 md:px-6 lg:px-8">
@@ -223,13 +288,13 @@ export default function Reservation() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-[34px] font-bold leading-none text-slate-800">
+                <h1 className="text-3xl font-bold text-slate-800">
                   Reservation {reservationId}
                 </h1>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${
                     isCancelled
-                      ? "bg-rose-100 text-rose-700"
+                      ? "bg-red-100 text-red-700"
                       : "bg-emerald-100 text-emerald-700"
                   }`}
                 >
@@ -237,117 +302,92 @@ export default function Reservation() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-500">
-                Booked on {new Date().toLocaleDateString()} - {days} days duration
+                Booked on {new Date().toLocaleDateString()} • {days} days
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handlePrint}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700"
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                Print Detail
+                Print
               </button>
               <button
                 onClick={handleModify}
-                className="rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold text-white"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
               >
-                Modify Booking
+                Modify
               </button>
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Rental Progress
+            <p className="mb-5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Rental Timeline
             </p>
-            <div className="relative grid grid-cols-3 gap-3 text-sm">
-              <div className="absolute left-[12%] right-[12%] top-4 h-[2px] bg-slate-200" />
-              <div className="absolute left-[12%] top-4 h-[2px] w-[38%] bg-blue-500" />
-              <div className="relative">
-                <div className="mb-3 h-3 w-3 rounded-full bg-blue-600" />
-                <p className="text-xs font-semibold text-slate-800">Reserved</p>
-                <p className="text-[11px] text-slate-500">{new Date().toLocaleString()}</p>
+            
+            {/* SIMPLIFIED TIMELINE */}
+            <div className="space-y-4">
+              {/* Progress Status */}
+              <div className="flex items-center justify-between">
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
+                  progressData.currentStep === "completed" ? "bg-emerald-100 text-emerald-700" :
+                  progressData.currentStep === "in-progress" ? "bg-blue-100 text-blue-700" :
+                  "bg-slate-100 text-slate-700"
+                }`}>
+                  {progressData.currentStep === "completed" && "✓ Completed"}
+                  {progressData.currentStep === "in-progress" && <><FaCar />   In Progress</>}
+                  {progressData.currentStep === "reserved" && "📅 Upcoming"}
+                </div>
+                <span className="text-sm font-semibold text-slate-600">
+                  {progressData.progressPercent.toFixed(0)}%
+                </span>
               </div>
-              <div className="relative">
-                <div className="mb-3 h-3 w-3 rounded-full border-2 border-blue-500 bg-white" />
-                <p className="text-xs font-semibold text-slate-800">Pick-up Expected</p>
-                <p className="text-[11px] text-slate-500">{pickUpFormatted}</p>
-                {showPickUpPlanning ? (
-                  <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-                    <p className="mb-2 text-sm font-semibold text-red-500">Mai 2026</p>
-                    <div className="grid grid-cols-7 overflow-hidden rounded-md border border-slate-200 text-center text-xs text-slate-500">
-                      {planningDays.map((d) => (
-                        <div key={d} className="border-r border-slate-200 bg-slate-50 py-2 font-semibold last:border-r-0">
-                          {d}
-                        </div>
-                      ))}
-                      {planningDates.map((d) => (
-                        <div key={d} className="border-r border-t border-slate-200 py-2 text-slate-700 last:border-r-0">
-                          {d}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      {planningRows.map((row, rowIndex) => (
-                        <div key={`${row.label}-${rowIndex}`} className="grid grid-cols-7 gap-1.5">
-                          {Array.from({ length: 7 }).map((_, idx) => {
-                            const segment = row.segments.find(
-                              (seg) => idx >= seg.start && idx < seg.start + seg.span
-                            );
 
-                            if (!segment) {
-                              return <div key={idx} className="h-8 rounded-sm bg-slate-100" />;
-                            }
-
-                            if (segment.note) {
-                              return (
-                                <div
-                                  key={idx}
-                                  className={`flex h-8 items-center justify-center rounded-sm text-[11px] font-semibold ${segment.noteColor}`}
-                                >
-                                  {segment.note}
-                                </div>
-                              );
-                            }
-
-                            const isSegmentStart = idx === segment.start;
-                            const isSelectable = row.color === "bg-emerald-600";
-                            const isSelected = selectedPlanningSlots.some(
-                              (slot) => slot.row === rowIndex && slot.day === idx
-                            );
-
-                            return (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => togglePlanningSlot(rowIndex, idx)}
-                                className={`flex h-8 items-center ${
-                                  isSegmentStart ? "justify-start pl-1" : "justify-center"
-                                } rounded-sm ${row.color} ${row.textColor} text-[11px] font-semibold ${
-                                  isSelectable ? "cursor-pointer" : "cursor-not-allowed"
-                                } ${isSelected ? "ring-2 ring-blue-500" : ""}`}
-                              >
-                                {isSegmentStart ? row.label : ""}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500">
-                      Selected slots: {selectedSlotsLabel || "none"}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="mt-2 text-[10px] text-slate-400">
-                    Click "Confirm Reservation" to open the selectable planning table.
-                  </p>
-                )}
+              {/* Progress Bar */}
+              <div className="relative h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    progressData.currentStep === "completed" ? "bg-emerald-500" :
+                    progressData.currentStep === "in-progress" ? "bg-blue-500" :
+                    "bg-slate-300"
+                  }`}
+                  style={{ width: `${progressData.progressPercent}%` }}
+                />
               </div>
-              <div className="relative">
-                <div className="mb-3 h-3 w-3 rounded-full border border-slate-300 bg-white" />
-                <p className="text-xs font-semibold text-slate-400">Return Scheduled</p>
-                <p className="text-[11px] text-slate-400">{returnFormatted}</p>
+
+              {/* Timeline Steps */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { name: "reserved", label: "Reservation", icon: "✓", date: new Date().toLocaleDateString() },
+                  { name: "pickup", label: "Pick-up", icon: <FaCar />, date: bookingData?.pickUpDate },
+                  { name: "return", label: "Return", icon: "✓", date: bookingData?.returnDate }
+                ].map((step) => {
+                  const styles = getStepStyles(progressData.currentStep, step.name);
+                  return (
+                    <div key={step.name} className={styles.container}>
+                      <div className={styles.icon}>{step.icon}</div>
+                      <p className={styles.text}>{step.label}</p>
+                      <p className={styles.date}>{step.date}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Time Details - Minimal */}
+              <div className="grid grid-cols-3 gap-2 text-xs pt-2">
+                <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                  <p className="text-slate-600 text-[10px]">Pick-up</p>
+                  <p className="font-semibold text-slate-800 text-xs">{pickUpFormatted}</p>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                  <p className="text-slate-600 text-[10px]">Duration</p>
+                  <p className="font-semibold text-slate-800 text-xs">{days} days</p>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                  <p className="text-slate-600 text-[10px]">Return</p>
+                  <p className="font-semibold text-slate-800 text-xs">{returnFormatted}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -384,47 +424,47 @@ export default function Reservation() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-blue-500">
-                    <MapPin size={12} />
+                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                    <FaMapMarkerAlt size={11} className="text-blue-600" />
                     Pick-up Location
                   </p>
                   <h4 className="mt-2 text-sm font-semibold text-slate-800">{agency}</h4>
                   <p className="text-xs text-slate-500">{city}</p>
-                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-400">
-                    <Clock3 size={12} />
+                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-600">
+                    <FaClock size={11} />
                     Open 24/7
                   </p>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                    <Phone size={12} />
+                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                    <FaPhone size={11} />
                     +49 30 1234 5678
                   </p>
                   <button
                     onClick={() => handleOpenMap(`${agency}, ${city}`)}
-                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600"
+                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-100 transition-colors"
                   >
                     View on Map
                   </button>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-blue-500">
-                    <Route size={12} />
+                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                    <FaRoad size={11} className="text-blue-600" />
                     Drop-off Location
                   </p>
                   <h4 className="mt-2 text-sm font-semibold text-slate-800">Berlin City Center - Alexanderplatz</h4>
                   <p className="text-xs text-slate-500">Karl-Liebknecht-Str. 5, 10178 Berlin, Germany</p>
-                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-400">
-                    <Clock3 size={12} />
+                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-600">
+                    <FaClock size={11} />
                     08:00 - 20:00
                   </p>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                    <Phone size={12} />
+                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                    <FaPhone size={11} />
                     +49 30 8765 4321
                   </p>
                   <button
                     onClick={() =>
                       handleOpenMap("Berlin City Center - Alexanderplatz, Berlin")
                     }
-                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600"
+                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-100 transition-colors"
                   >
                     View on Map
                   </button>
@@ -464,60 +504,35 @@ export default function Reservation() {
                   </button>
                 </div>
               </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-semibold text-slate-800">Documents</h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleDownloadDocument("Rental_Agreement", "signed")}
-                    className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText size={14} className="text-red-500" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-700">Rental_Agreem...</p>
-                        <p className="text-[10px] text-slate-400">1.2 MB - Signed</p>
-                      </div>
-                    </div>
-                    <Download size={14} className="text-blue-600" />
-                  </button>
-                  <button
-                    onClick={() => handleDownloadDocument("Inspection_Report", "generating")}
-                    className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText size={14} className="text-red-500" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-700">Inspection_Rep...</p>
-                        <p className="text-[10px] text-slate-400">- MB - Generating...</p>
-                      </div>
-                    </div>
-                    <Download size={14} className="text-slate-300" />
-                  </button>
-                </div>
-                <p className="mt-3 text-[10px] text-slate-400">
-                  * Inspection report will be available after the vehicle pick-up is finalized at the counter.
-                </p>
-              </div>
             </aside>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-sm">
-            <p className="text-slate-600">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-600">
               Need to change your plans? Free cancellation available within 24h.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={handleConfirm}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none rounded-lg border border-slate-300 bg-white px-5 py-2 font-semibold transition-colors ${
+                  isLoading
+                    ? "opacity-50 cursor-not-allowed text-slate-500"
+                    : "text-slate-700 hover:bg-slate-50"
+                }`}
               >
-                Confirm Reservation
+                {isLoading ? "Confirming..." : "Confirm"}
               </button>
               <button
                 onClick={handleCancel}
-                className="rounded-md border border-rose-200 px-4 py-2 font-semibold text-rose-600"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none rounded-lg border border-red-300 bg-white px-5 py-2 font-semibold transition-colors ${
+                  isLoading
+                    ? "opacity-50 cursor-not-allowed text-red-400"
+                    : "text-red-600 hover:bg-red-50"
+                }`}
               >
-                Cancel Reservation
+                Cancel
               </button>
             </div>
           </div>

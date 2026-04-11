@@ -70,8 +70,10 @@ export const authService = {
     const data = registerSchema.parse(payload) as RegisterInput;
     const existing = await authRepository.findByEmail(data.email);
     if (existing) throw new UserAlreadyRegisteredError();
-    const byCin = await authRepository.findByCin(data.cin);
-    if (byCin) throw new CinAlreadyRegisteredError();
+    if (data.cin) {
+      const byCin = await authRepository.findByCin(data.cin);
+      if (byCin) throw new CinAlreadyRegisteredError();
+    }
     const hashed = await hashPassword(data.password);
     const user = await authRepository.create({
       nom_complet: data.nom_complet,
@@ -92,7 +94,7 @@ export const authService = {
       text: `Verify your email. Use this code: ${verificationCode} (valid ${env.resetTokenExpiresMinutes} min). Or open: ${validationUrl}`,
       template: { type: "validate-email", token: verificationCode, validationUrl, expiresMinutes: env.resetTokenExpiresMinutes },
     });
-  
+    return { expiresAt };
   },
 
   async validateEmail(payload: unknown) {

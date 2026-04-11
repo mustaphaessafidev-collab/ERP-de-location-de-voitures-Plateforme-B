@@ -65,7 +65,7 @@ export default function BookingCard({ vehicle }) {
     };
 
     navigate("/booking-review", {
-      state: { bookingData },
+      state: bookingData,
     });
   };
 
@@ -76,7 +76,7 @@ export default function BookingCard({ vehicle }) {
           <p className="text-3xl font-bold text-slate-900">
             {vehicle.pricePerDay} DH
             <span className="ml-1 text-sm font-normal text-slate-400">
-              / Jour
+              / day
             </span>
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function BookingCard({ vehicle }) {
                 </span>
               </div>
               <span className="text-sm font-medium text-slate-700">
-                + 25 DH/Jour
+                + 25 DH/day
               </span>
             </label>
 
@@ -185,7 +185,7 @@ export default function BookingCard({ vehicle }) {
                 <span className="text-sm text-slate-700">Siège enfant</span>
               </div>
               <span className="text-sm font-medium text-slate-700">
-                + 10 DH/Jour
+                + 10 DH/day
               </span>
             </label>
           </div>
