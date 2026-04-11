@@ -1,0 +1,258 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { authService } from '../../services/auth';
+import { useAuth } from '../../context/useAuth';
+import validateBg from '../../assets/auth-imgs/luxury-car-hero.png';
+
+export default function ValidateEmailPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshAuth } = useAuth();
+  const [otp, setOtp] = useState('');
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  const email = location.state?.email || 'votre email';
+  const expiresAt = location.state?.expiresAt;
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tokenFromUrl = params.get('token');
+    if (tokenFromUrl) setOtp(tokenFromUrl);
+  }, [location]);
+
+  // Timer logic
+  useEffect(() => {
+    if (!expiresAt) {
+      // Default to 60m if we don't have the exact time
+      const defaultExpiry = Date.now() + 60 * 60 * 1000;
+      startTimer(defaultExpiry);
+      return;
+    }
+    startTimer(new Date(expiresAt).getTime());
+  }, [expiresAt]);
+
+  const startTimer = (expiryTime) => {
+    const calculateTime = () => {
+      const now = Date.now();
+      const difference = expiryTime - now;
+
+      if (difference <= 0) {
+        setTimeLeft('00:00');
+        setIsExpired(true);
+        return false;
+      }
+
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+      
+      setTimeLeft(
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+      );
+      return true;
+    };
+
+    calculateTime();
+    const timer = setInterval(() => {
+      const active = calculateTime();
+      if (!active) clearInterval(timer);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  };
+
+  const handleResend = async () => {
+    // Note: In a real app, you'd call a resend endpoint here.
+    // For now, we'll just navigate back to register or show a message.
+    setError("Veuillez vous réinscrire pour recevoir un nouveau code.");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await submitValidation(otp);
+  };
+
+  const submitValidation = async (otpCode) => {
+    if (!otpCode || otpCode.length < 6) {
+      setError('Veuillez entrer un code valide à 6 chiffres');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      await authService.validateEmail(otpCode);
+      refreshAuth();
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.message || 'La vérification a échoué. Veuillez vérifier votre code et réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* ── LEFT PANEL ── */}
+      <div
+        className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-10 overflow-hidden"
+        style={{
+          backgroundImage: `url(${validateBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 40%',
+        }}
+      >
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/60" />
+
+        {/* Grid texture */}
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+
+        {/* Ambient glow */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-2/3 opacity-30"
+          style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.3) 0%, transparent 70%)' }}
+        />
+
+        {/* Logo — pinned top-left */}
+        <div className="absolute top-10 left-10 z-10 flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <svg viewBox="0 0 24 24" className="w-6 h-6 text-white fill-current">
+              <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z"/>
+              <circle cx="7.5" cy="14.5" r="1.5"/>
+              <circle cx="16.5" cy="14.5" r="1.5"/>
+            </svg>
+          </div>
+          <span className="text-white font-bold text-lg tracking-wide">PREMIUM RENTALS</span>
+        </div>
+
+        {/* Hero text */}
+        <div className="relative z-10">
+          <h1 className="text-5xl font-bold text-white leading-tight mb-4">
+            À une étape<br />de la route.
+          </h1>
+          <p className="text-gray-400 text-base max-w-xs leading-relaxed">
+            Vérifiez votre email pour débloquer l'accès complet à notre portail de gestion de flotte premium.
+          </p>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL ── */}
+      <div className="flex-1 flex flex-col justify-between bg-white px-8 py-10 sm:px-16 overflow-hidden">
+        <div className="max-w-md mx-auto w-full flex flex-col justify-center h-full">
+
+          {/* Icon + Heading */}
+          <div className="mb-8">
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-5">
+              <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-1">Vérifiez vos e-mails</h2>
+            <p className="text-gray-500 text-sm mb-4">
+              Nous avons envoyé un code à 6 chiffres à{' '}
+              <span className="font-semibold text-gray-700">{email}</span>
+            </p>
+
+            {/* Timer Badge */}
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase ${
+              isExpired ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
+            }`}>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{isExpired ? 'Code expiré' : `Expire dans: ${timeLeft || '--:--'}`}</span>
+            </div>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-5 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* OTP input */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Code de vérification
+              </label>
+              <input
+                id="otp"
+                name="otp"
+                type="text"
+                required
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="0  0  0  0  0  0"
+                className="w-full text-center text-2xl font-mono tracking-[0.5em] px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-300"
+              />
+              <p className={`mt-2 text-xs text-center ${isExpired ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                {isExpired 
+                  ? "Ce code n'est plus valide. Veuillez en demander un nouveau." 
+                  : "Entrez le code à 6 chiffres reçu par email"}
+              </p>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isLoading || otp.length < 6 || isExpired}
+              className={`w-full py-3 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2 ${
+                (isLoading || otp.length < 6 || isExpired) ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Vérification...
+                </>
+              ) : (
+                'Vérifier l\'email →'
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            {isExpired ? (
+              <button onClick={() => navigate('/register')} className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                Renvoyer un nouveau code
+              </button>
+            ) : (
+              <>
+                Mauvaise adresse ?{' '}
+                <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                  Retour
+                </Link>
+                {' · '}
+                <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                  Se connecter
+                </Link>
+              </>
+            )}
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-center gap-6 text-xs text-gray-400 pt-4">
+          <a href="#" className="hover:text-gray-600 transition-colors">Politique de confidentialité</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Conditions d'utilisation</a>
+          <a href="#" className="hover:text-gray-600 transition-colors">Support</a>
+        </div>
+      </div>
+    </div>
+  );
+}

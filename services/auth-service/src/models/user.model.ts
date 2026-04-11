@@ -5,8 +5,8 @@
 export interface User {
   id: number;
   nom_complet: string;
-  cin: string;
-  telephone: string;
+  cin?: string | null;
+  telephone?: string | null;
   email: string;
   adresse: string | null;
   password: string;
@@ -21,8 +21,8 @@ export type UserResponse = Omit<User, "password">;
 /** Input for creating a new user (e.g. register) */
 export interface CreateUserInput {
   nom_complet: string;
-  cin: string;
-  telephone: string;
+  cin?: string | null;
+  telephone?: string | null;
   email: string;
   adresse?: string | null;
   password: string;
