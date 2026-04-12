@@ -7,13 +7,13 @@ import {
 
 const router = express.Router();
 
-// Create reservation
-router.post("/api/reservations", createReservation);
+// Create reservation - POST /api/reservations
+router.post("/", createReservation);
 
-// Get single reservation by ID
-router.get("/api/reservations/:id", getReservationById);
+// Get single reservation by ID - GET /api/reservations/:id
+router.get("/:id", getReservationById);
 
-// Get all reservations for a specific user
-router.get("/api/reservations/user/:userId", getUserReservations);
+// Get all reservations for a specific user - GET /api/reservations/user/:userId
+router.get("/user/:userId", getUserReservations);
 
 export default router;
