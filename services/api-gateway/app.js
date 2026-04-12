@@ -16,6 +16,7 @@ app.get("/", (req, res) => {
   res.json({ message: "API Gateway is working" });
 });
 
+// AUTH
 app.use(
   "/api/auth",
   createProxyMiddleware({
@@ -27,6 +28,8 @@ app.use(
     ignorePath: false,
   })
 );
+
+// ADMIN
 app.use(
   "/api/admin",
   createProxyMiddleware({
@@ -35,40 +38,42 @@ app.use(
   })
 );
 
+// PROFILE
 app.use(
-<<<<<<< HEAD
   "/api/profile",
-=======
-  "/api/users",
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
   createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-<<<<<<< HEAD
       "^/api/profile": "/api/profile",
     },
     ignorePath: false,
   })
 );
 
-//test github
-=======
-      "^/api/admin": "", 
+// USERS
+app.use(
+  "/api/users",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/users": "/api/users",
     },
+    ignorePath: false,
   })
 );
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
 
+// AGENTS
 app.use(
   "/api/agents",
   createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL,
     changeOrigin: true,
-
   })
 );
 
+// TICKETS
 app.use(
   "/api/tickets",
   createProxyMiddleware({
@@ -77,7 +82,7 @@ app.use(
   })
 );
 
-
+// AI
 app.use(
   "/api/ai",
   createProxyMiddleware({
@@ -86,12 +91,13 @@ app.use(
   })
 );
 
+// RESERVATIONS
 app.use(
   "/api/reservations",
   createProxyMiddleware({
-    target: process.env.RESERVATION_SERVICE_URL,
+    target: `${process.env.RESERVATION_SERVICE_URL}/api/reservations`,
     changeOrigin: true,
   })
 );
-export default app;
 
+export default app;

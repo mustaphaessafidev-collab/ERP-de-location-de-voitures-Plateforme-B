@@ -14,14 +14,9 @@ datasource db {
 model User {
   id               Int       @id @default(autoincrement())
   nom_complet      String
-<<<<<<< HEAD
-  cin              String    @unique
+  cin              String?   @unique   // ✅ optional
   num_permis       String?
-  telephone        String
-=======
-  cin              String?   @unique
-  telephone        String?
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
+  telephone        String?   // ✅ optional
   email            String    @unique
   adresse          String?
   profilePhotoData String?   @map("profile_photo_data")
@@ -35,6 +30,7 @@ model User {
   passwordResets           PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
   drivingLicense          DrivingLicense?
+
   @@map("users")
 }
 

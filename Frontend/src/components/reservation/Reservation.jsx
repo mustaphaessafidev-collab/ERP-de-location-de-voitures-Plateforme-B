@@ -2,9 +2,11 @@ import { jsPDF } from "jspdf";
 import axios from "axios";
 import { useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaClock, FaMapMarkerAlt, FaPhone, FaRoad } from "react-icons/fa";
+import { FaClock, FaMapMarkerAlt, FaPhone, FaRoad, FaCar } from "react-icons/fa";
 import { useNotifications } from "../../context/NotificationContext";
-import { FaCar } from "react-icons/fa";
+import { createReservation } from "../../services/reservation";
+
+
 // ===== HELPER FUNCTIONS =====
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
@@ -193,13 +195,11 @@ export default function Reservation() {
   }, [reservationId, reservationStatus, vehicleImage, vehicleName, agency, pickUpFormatted, returnFormatted, days, basePrice, insurancePrice, serviceFee, totalPrice]);
 
   const handleConfirm = useCallback(async () => {
-    // Console logging for debugging
     console.log("[FRONTEND] === Reservation Confirm ===");
     console.log("[FRONTEND] Booking Data:", bookingData);
-    console.log("[FRONTEND] Pick-up:", bookingData?.pickUpDate, bookingData?.pickUpTime);
-    console.log("[FRONTEND] Return:", bookingData?.returnDate, bookingData?.returnTime);
-    console.log("[FRONTEND] Progress:", progressData);
-    
+    console.log("[FRONTEND] Pick-up:", bookingData?.pickUpDate);
+    console.log("[FRONTEND] Return:", bookingData?.returnDate);
+
     setIsLoading(true);
     try {
       // Get user ID from localStorage
@@ -207,7 +207,9 @@ export default function Reservation() {
       const userId = user?.id;
 
       if (!userId) {
-        throw new Error("User not authenticated. Please login again.");
+        throw new Error(
+          "User not authenticated. Please login again."
+        );
       }
 
       // Prepare reservation payload (field names match backend database schema)
@@ -220,52 +222,58 @@ export default function Reservation() {
         nombre_jours: bookingData?.numberDays,
       };
 
-      console.log("[FRONTEND] User ID from localStorage:", userId);
-      console.log("[FRONTEND] Sending reservation to API Gateway:", reservationPayload);
+      console.log("[FRONTEND] User ID:", userId);
+      console.log("[FRONTEND] Reservation Payload:", reservationPayload);
 
-      // Make API call to API Gateway (port 4000) which forwards to Reservation Service (port 5003)
-      const response = await axios.post(
-        "http://localhost:4000/api/reservations",
-        reservationPayload
-      );
+      // ✅ Call reservation service (now properly routed through gateway)
+      const reservation = await createReservation(reservationPayload);
 
-      const reservation = response.data;
-
-      console.log("[FRONTEND] Reservation created successfully:", response.data);
+      console.log("[FRONTEND] ✅ Reservation created:", reservation);
 
       setReservationStatus("Confirmed");
       addNotification(
         "success",
-        "Réservation confirmée ✅",
-        `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
-        reservationId
+        "Réservation confirmée ",
+        `Votre réservation a été créée avec succès.`,
+        `RES-${reservation.id}`
       );
 
-      // ✅ 2. API notification (service) - Only after successful reservation
-      console.log("[FRONTEND] Creating notification for userId:", String(userId));
-      await axios.post("http://localhost:4004/api/notifications", {
-        userId: String(userId),
-        type: "RESERVATION",
-        title: "Reservation Created",
-        message: "Your reservation has been created successfully.",
-        referenceId: String(reservation.id),
-      });
-      
-      console.log("[FRONTEND] Notification created successfully");
+      // ✅ Create notification
+      try {
+        console.log("[FRONTEND] Creating notification for userId:", String(userId));
+        await axios.post("http://localhost:4004/api/notifications", {
+          userId: String(userId),
+          type: "RESERVATION",
+          title: "Reservation Created",
+          message: "Your reservation has been created successfully.",
+          referenceId: String(reservation.id),
+        });
+        console.log("[FRONTEND] ✅ Notification created");
+        navigate("/dashboard");
+      } catch (notificationError) {
+        console.warn(
+          "[FRONTEND] ⚠️ Notification service unavailable:",
+          notificationError.message
+        );
+        // Don't fail the reservation if notification fails
+      }
     } catch (error) {
-      console.error("[FRONTEND] Error creating reservation:", error);
-      console.error("[FRONTEND] Error response data:", error.response?.data);
+      console.error("[FRONTEND] ❌ Error creating reservation:", error);
+      console.error("Error details:", error.response?.data || error.message);
+
       addNotification(
         "error",
         "Erreur lors de la création ❌",
-        error.response?.data?.error || error.response?.data?.message || error.message || "Une erreur s'est produite lors de la création de la réservation.",
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Une erreur s'est produite.",
         reservationId
       );
     } finally {
       setIsLoading(false);
     }
-    console.log("[FRONTEND] === End Debug ===");
-  }, [bookingData, progressData, reservationId, vehicleName, addNotification]);
+  }, [bookingData, reservationId, vehicleName, addNotification]);
 
   const handleCancel = useCallback(() => {
     setReservationStatus("Cancelled");

@@ -11,11 +11,11 @@ app.use(express.json());
 
 // Logging middleware
 app.use((req, res, next) => {
-  console.log(`[RESERVATION SERVICE] ${req.method} ${req.path}`);
+  console.log(`[RESERVATION SERVICE] ${req.method} ${req.originalUrl}`);
   next();
 });
 
-app.use("", reservationRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Reservation Service Running 🚀");
