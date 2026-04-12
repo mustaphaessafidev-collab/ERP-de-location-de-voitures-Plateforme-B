@@ -6,6 +6,7 @@ import { FaClock, FaMapMarkerAlt, FaPhone, FaRoad, FaCar } from "react-icons/fa"
 import { useNotifications } from "../../context/NotificationContext";
 import { createReservation } from "../../services/reservation";
 
+
 // ===== HELPER FUNCTIONS =====
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
@@ -232,7 +233,7 @@ export default function Reservation() {
       setReservationStatus("Confirmed");
       addNotification(
         "success",
-        "Réservation confirmée ✅",
+        "Réservation confirmée ",
         `Votre réservation a été créée avec succès.`,
         `RES-${reservation.id}`
       );
@@ -248,6 +249,7 @@ export default function Reservation() {
           referenceId: String(reservation.id),
         });
         console.log("[FRONTEND] ✅ Notification created");
+        navigate("/dashboard");
       } catch (notificationError) {
         console.warn(
           "[FRONTEND] ⚠️ Notification service unavailable:",

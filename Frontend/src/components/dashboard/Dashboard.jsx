@@ -188,32 +188,13 @@ export default function Dashboard() {
   return (
     <div className="p-8 w-full">{/* Top Bar */}
       {/* Top Bar */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search bookings..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-slate-100 rounded-lg transition">
-            <Bell size={20} className="text-slate-600" />
-          </button>
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-        </div>
-      </div>
+      
 
       {/* Welcome Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Welcome back, {userName}! 👋
+            Welcome back, {userName}! 
           </h1>
           <p className="text-slate-600">
             Here's your car rental activity at a glance
@@ -406,33 +387,7 @@ export default function Dashboard() {
       </div>
 
       {/* Footer Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <Bell className="text-blue-600" size={32} />
-          </div>
-          <h4 className="font-bold text-slate-900 mb-2">Need Help?</h4>
-          <p className="text-slate-600 text-sm mb-4">
-            Our support team is ready to assist you 24/7
-          </p>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-sm">
-            Contact Support
-          </button>
-        </div>
-
-        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <DollarSign className="text-amber-600" size={32} />
-          </div>
-          <h4 className="font-bold text-slate-900 mb-2">Special Offers</h4>
-          <p className="text-slate-600 text-sm mb-4">
-            Check out exclusive deals and discounts for you
-          </p>
-          <button className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold text-sm">
-            View Offers
-          </button>
-        </div>
-      </div>
+      
     </div>
   );
 }

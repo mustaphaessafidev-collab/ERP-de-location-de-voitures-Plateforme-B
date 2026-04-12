@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, DollarSign, Car, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Calendar,
+  DollarSign,
+  Car,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { getUserReservations } from "../../services/reservation";
 
@@ -8,9 +15,7 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const userEmail = localStorage.getItem("userEmail");
+  const itemsPerPage = 8;
 
   useEffect(() => {
     fetchAllReservations();
@@ -19,243 +24,231 @@ export default function HistoryPage() {
   const fetchAllReservations = async () => {
     try {
       setLoading(true);
-
-      // Get user ID from localStorage
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
 
-      if (!userId) {
-        console.warn("[HISTORY PAGE] User ID not found in localStorage");
-        setReservations([]);
-        return;
-      }
+      if (!userId) return setReservations([]);
 
-      console.log("[HISTORY PAGE] Fetching all reservations for userId:", userId);
-
-      // Fetch reservations from API
       const data = await getUserReservations(userId);
-
-      console.log("[HISTORY PAGE] ✅ Received reservations:", data);
-
-      // Sort by most recent first
       setReservations(data || []);
     } catch (err) {
-      console.error("[HISTORY PAGE] ❌ Error fetching reservations:", err);
+      console.error(err);
       setReservations([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusClass = (status) => {
-    switch(status?.toLowerCase()) {
-      case "active":
-      case "progress":
-        return "progress";
-      case "confirmed":
-        return "confirmed";
-      case "pending":
-        return "pending";
-      case "cancelled":
-        return "pending";
-      default:
-        return "pending";
-    }
-  };
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 
-  const getStatusText = (status) => {
-    switch(status?.toLowerCase()) {
-      case "active":
-      case "progress":
-        return "In Progress";
-      case "confirmed":
-        return "Confirmed";
-      case "pending":
-        return "Pending";
-      case "cancelled":
-        return "Cancelled";
-      default:
-        return status || "Pending";
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  };
-
-  const calculateDuration = (startDate, endDate) => {
-    if (!startDate || !endDate) return "N/A";
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    return `${days} days`;
-  };
-
-  // Filter reservations based on search
-  const filteredReservations = reservations.filter(res => 
-    res.vehicle?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    res.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    res.id?.toString().includes(searchTerm)
+  const filtered = reservations.filter((r) =>
+    r.vehicle_id?.toString().includes(searchTerm) ||
+    r.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.id?.toString().includes(searchTerm)
   );
 
-  // Pagination
-  const totalPages = Math.ceil(filteredReservations.length / itemsPerPage);
-  const paginatedReservations = filteredReservations.slice(
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const data = filtered.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            width: '48px', 
-            height: '48px', 
-            border: '3px solid #e5e7eb', 
-            borderTopColor: '#2563eb', 
-            borderRadius: '50%', 
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <p>Loading your reservation history...</p>
-        </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="p-8 w-full">
-        <div className="history-header">
-          <h1>My Rental History</h1>
-          <p>View all your past and upcoming reservations</p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="history-search">
-          <div className="search-wrapper">
-            <Search size={18} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search by vehicle, status, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Stats Summary */}
-        <div className="history-stats">
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-card-title">Total Reservations</span>
-              <Car size={20} color="#3b82f6" />
-            </div>
-            <div className="stat-card-value">{reservations.length}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-card-title">Completed</span>
-              <Calendar size={20} color="#10b981" />
-            </div>
-            <div className="stat-card-value">
-              {reservations.filter(r => r.status === "completed" || r.status === "progress").length}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-card-title">Total Spent</span>
-              <DollarSign size={20} color="#f59e0b" />
-            </div>
-            <div className="stat-card-value">
-              ${reservations.reduce((sum, r) => sum + (parseFloat(r.prix) || 0), 0).toFixed(2)}
-            </div>
-          </div>
-        </div>
-
-        {/* Reservations Table */}
-        <div className="history-table-container">
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>VEHICLE</th>
-                <th>DATES</th>
-                <th>DURATION</th>
-                <th>TOTAL</th>
-                <th>STATUS</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedReservations.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="empty-state">
-                    {searchTerm ? "No reservations match your search" : "No reservations found"}
-                   </td>
-                </tr>
-              ) : (
-                paginatedReservations.map((reservation) => (
-                  <tr key={reservation.id}>
-                    <td>#{reservation.id}</td>
-                    <td>
-                      <div className="vehicle-cell">
-                        <div className="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center">
-                          <Car size={20} color="#666" />
-                        </div>
-                        <div>
-                          <div className="vehicle-name">Vehicle #{reservation.vehicle_id}</div>
-                          <div className="vehicle-plate">Reservation #{reservation.id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      {formatDate(reservation.date_debut)}<br />
-                      <span style={{ fontSize: '10px', color: '#9ca3af' }}>to</span><br />
-                      {formatDate(reservation.date_fin)}
-                    </td>
-                    <td>{reservation.nombre_jours} day{reservation.nombre_jours > 1 ? 's' : ''}</td>
-                    <td style={{ fontWeight: 500 }}>${parseFloat(reservation.prix).toFixed(2)}</td>
-                    <td>
-                      <span className={`status-badge ${getStatusClass(reservation.status)}`}>
-                        {getStatusText(reservation.status)}
-                      </span>
-                    </td>
-                    <td>
-                      <Link to={`/booking/${reservation.id}`} className="view-link">
-                        View Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} />
-              Previous
-            </button>
-            <span>Page {currentPage} of {totalPages}</span>
-            <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>
-              Next
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
+    <div className="p-6 md:p-10 bg-gray-50 min-h-screen">
+      {/* HEADER */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">
+          My Rental History
+        </h1>
+        <p className="text-gray-500">
+          View all your past and upcoming reservations
+        </p>
       </div>
-    
+
+      {/* SEARCH */}
+      <div className="mb-6 max-w-md">
+        <div className="flex items-center bg-white border border-gray-200 rounded-2xl px-4 py-1 shadow-sm focus-within:ring-4 focus-within:ring-blue-50 focus-within:border-blue-300 transition-all duration-300">
+          <Search size={18} className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search reservations..."
+            className="w-full p-2.5 outline-none bg-transparent text-gray-700 placeholder-gray-400"
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className="bg-white p-5 rounded-2xl shadow-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500 text-sm">
+              Total Reservations
+            </span>
+            <Car className="text-blue-500" />
+          </div>
+          <h2 className="text-2xl font-bold mt-3">
+            {reservations.length}
+          </h2>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl shadow-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500 text-sm">
+              Completed
+            </span>
+            <Calendar className="text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold mt-3">
+            {
+              reservations.filter(
+                (r) =>
+                  r.status === "confirmed" ||
+                  r.status === "completed"
+              ).length
+            }
+          </h2>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl shadow-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500 text-sm">
+              Total Spent
+            </span>
+            <DollarSign className="text-yellow-500" />
+          </div>
+          <h2 className="text-2xl font-bold mt-3">
+            $
+            {reservations
+              .reduce((sum, r) => sum + (parseFloat(r.prix) || 0), 0)
+              .toFixed(2)}
+          </h2>
+        </div>
+      </div>
+
+      {/* CARDS GRID */}
+      {data.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl shadow-sm flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+            <Car size={32} className="text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No reservations found</h3>
+          <p className="text-gray-500">You haven't made any reservations yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {data.map((r) => {
+            // Determine status colors
+            const status = r.status?.toLowerCase();
+            let statusClasses = "bg-gray-100 text-gray-600";
+            if (status === "confirmed" || status === "completed") {
+              statusClasses = "bg-green-100 text-green-600";
+            } else if (status === "pending") {
+              statusClasses = "bg-yellow-100 text-yellow-600";
+            } else if (status === "cancelled") {
+              statusClasses = "bg-red-100 text-red-600";
+            }
+
+            return (
+              <div
+                key={r.id}
+                className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] flex flex-col"
+              >
+                {/* Header (Icon, ID, Badges) */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                      <Car size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Vehicle #{r.vehicle_id}</h3>
+                      <p className="text-sm text-gray-500">Reservation #{r.id}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-5">
+                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${statusClasses}`}>
+                    {r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : "Unknown"}
+                  </span>
+                </div>
+
+                {/* Details */}
+                <div className="flex-1 space-y-4 mb-6">
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-gray-500 text-sm">Start</span>
+                      <span className="font-medium text-gray-900 text-sm">{formatDate(r.date_debut)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">End</span>
+                      <span className="font-medium text-gray-900 text-sm">{formatDate(r.date_fin)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-gray-500 text-sm">Duration</span>
+                    <span className="font-medium text-gray-900">{r.nombre_jours} days</span>
+                  </div>
+
+                  <div className="flex justify-between items-center px-1 pt-4 border-t border-gray-100">
+                    <span className="text-gray-500 text-sm">Total Price</span>
+                    <span className="font-bold text-lg text-gray-900">${parseFloat(r.prix).toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Action */}
+                <Link
+                  to={`/booking/${r.id}`}
+                  className="w-full block text-center py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium rounded-xl transition-colors text-sm"
+                >
+                  View Details
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* PAGINATION */}
+      <div className="flex justify-between items-center mt-6">
+        <button
+          onClick={() =>
+            setCurrentPage((p) => Math.max(p - 1, 1))
+          }
+          className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg"
+        >
+          <ChevronLeft size={16} /> Prev
+        </button>
+
+        <span className="text-gray-500">
+          Page {currentPage} / {totalPages}
+        </span>
+
+        <button
+          onClick={() =>
+            setCurrentPage((p) =>
+              Math.min(p + 1, totalPages)
+            )
+          }
+          className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg"
+        >
+          Next <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
   );
 }
