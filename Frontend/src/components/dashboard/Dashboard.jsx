@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
-  LayoutDashboard,
-  Car,
-  History,
-  FileText,
-  User,
-  Settings,
   Search,
   Bell,
-  Key,
-  Calendar,
-  DollarSign
+  Car,
+  TrendingUp,
+  Clock,
+  DollarSign,
+  CheckCircle2,
+  ChevronRight,
 } from "lucide-react";
-import Sidebar from "./Sidebar";
 import { Link } from "react-router-dom";
+import { getUserReservations } from "../../services/reservation";
 
 export default function Dashboard() {
   const [bookings, setBookings] = useState([]);
@@ -22,7 +19,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     activeRentals: 0,
     upcomingBookings: 0,
-    totalSpent: 0
+    totalSpent: "0.00",
   });
 
   const userEmail = localStorage.getItem("userEmail");
@@ -36,36 +33,29 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        // Try to get from localStorage as fallback
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           try {
             const user = JSON.parse(storedUser);
-            setUserName(user.nom_complet || user.name || user.email?.split('@')[0] || "User");
-          } catch (e) { }
+            setUserName(user.nom_complet || user.name || "User");
+          } catch (e) {
+            console.error("Parse error:", e);
+          }
         }
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/auth/profile', {
+      const response = await fetch("http://localhost:8000/api/auth/profile", {
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
         const userData = await response.json();
-        setUserName(userData.nom_complet || userData.fullName || userData.name || "User");
-        // Store for future use
+        setUserName(userData.nom_complet || userData.fullName || "User");
         localStorage.setItem("user", JSON.stringify(userData));
-      } else {
-        // Fallback to localStorage
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          setUserName(user.nom_complet || user.name || "User");
-        }
       }
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -76,56 +66,83 @@ export default function Dashboard() {
   const fetchReservations = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://localhost:8000/api/reservations/my?email=${userEmail}`, {
-        headers: {
-          "Authorization": token ? `Bearer ${token}` : "",
-          "Content-Type": "application/json"
-        }
-      });
+      // Get user ID from localStorage
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!userId) {
+        console.warn("[DASHBOARD] User ID not found in localStorage");
+        setBookings([]);
+        setStats({
+          activeRentals: 0,
+          upcomingBookings: 0,
+          totalSpent: "0.00",
+        });
+        return;
       }
 
-      const data = await response.json();
+      console.log("[DASHBOARD] Fetching reservations for userId:", userId);
 
-      const lastThreeReservations = data.slice(-3).reverse(); // Most recent first
+      // Fetch reservations from new API endpoint
+      const data = await getUserReservations(userId);
+
+      console.log("[DASHBOARD] ✅ Received reservations:", data);
+
+      // Get last 3 reservations (most recent first)
+      const lastThreeReservations = data.slice(0, 3);
       setBookings(lastThreeReservations);
 
-      // Calculate stats from ALL reservations (not just last 3)
-      const active = data.filter(r =>
-        r.status === "active" || r.status === "progress" || r.status === "confirmed"
+      // Calculate stats
+      const active = data.filter(
+        (r) =>
+          r.status?.toLowerCase() === "confirmed" ||
+          r.status?.toLowerCase() === "progress"
       ).length;
 
-      const upcoming = data.filter(r => r.status === "pending").length;
-      const total = data.reduce((sum, r) => sum + (parseFloat(r.total_price) || 0), 0);
+      const upcoming = data.filter((r) => r.status?.toLowerCase() === "pending")
+        .length;
+
+      const total = data.reduce(
+        (sum, r) => sum + (parseFloat(r.prix) || 0),
+        0
+      );
 
       setStats({
         activeRentals: active || 0,
         upcomingBookings: upcoming || 0,
-        totalSpent: total.toFixed(2) || "0.00"
+        totalSpent: total.toFixed(2) || "0.00",
       });
 
+      console.log("[DASHBOARD] Stats:", {
+        activeRentals: active,
+        upcomingBookings: upcoming,
+        totalSpent: total.toFixed(2),
+      });
     } catch (err) {
-      console.error("Error fetching reservations:", err);
+      console.error("[DASHBOARD] ❌ Error fetching reservations:", err);
       setBookings([]);
+      setStats({
+        activeRentals: 0,
+        upcomingBookings: 0,
+        totalSpent: "0.00",
+      });
     } finally {
       setLoading(false);
     }
   };
+
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
       case "active":
       case "progress":
-        return "progress";
+        return "bg-green-100 text-green-800";
       case "confirmed":
-        return "confirmed";
+        return "bg-blue-100 text-blue-800";
       case "pending":
-        return "pending";
+        return "bg-amber-100 text-amber-800";
       default:
-        return "pending";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -146,7 +163,7 @@ export default function Dashboard() {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   const calculateDuration = (startDate, endDate) => {
@@ -154,383 +171,266 @@ export default function Dashboard() {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    return `${days} days rental`;
+    return `${days} days`;
   };
 
   if (loading && bookings.length === 0) {
     return (
-      <div className="dashboard-layout">
-        <Sidebar />
-        <div className="dashboard-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              border: '3px solid #e5e7eb',
-              borderTopColor: '#2563eb',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 20px'
-            }}></div>
-            <p>Loading your reservations...</p>
-          </div>
+      <div className="flex items-center justify-center p-8 min-h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading your dashboard...</p>
         </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-layout">
-      <style>{`
-        .dashboard-layout {
-          display: flex;
-          min-height: 100vh;
-          background: #f6f8fb;
-          align-items: flex-start;
-        }
-        .dashboard-main {
-          flex: 1;
-          padding: 35px 40px;
-          overflow-y: auto;
-        }
-        .dashboard-topbar {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 30px;
-        }
-        .dashboard-search {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          padding: 10px 14px;
-          border-radius: 8px;
-          width: 320px;
-        }
-        .dashboard-search input {
-          border: none;
-          outline: none;
-          width: 100%;
-          background: transparent;
-        }
-        .dashboard-user {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .dashboard-avatar {
-          width: 34px;
-          height: 34px;
-          background: #e5e7eb;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-        .dashboard-avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 25px;
-        }
-        .dashboard-header h1 {
-          font-size: 26px;
-          font-weight: 600;
-          margin: 0;
-        }
-        .dashboard-header p {
-          font-size: 14px;
-          color: #6b7280;
-          margin-top: 5px;
-        }
-        .dashboard-bookBtn {
-          background: white;
-          border: 1px solid #e5e7eb;
-          padding: 10px 14px;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        .dashboard-bookBtn a {
-          text-decoration: none;
-          color: inherit;
-        }
-        .dashboard-stats {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 25px;
-        }
-        .dashboard-card {
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 20px;
-          flex: 1;
-        }
-        .dashboard-cardTop {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 10px;
-        }
-        .dashboard-cardTitle {
-          font-size: 13px;
-          color: #6b7280;
-        }
-        .dashboard-cardValue {
-          font-size: 22px;
-          font-weight: 600;
-        }
-        .dashboard-tableCard {
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 20px;
-        }
-        .dashboard-tableCard h3 {
-          margin-bottom: 10px;
-        }
-        .dashboard-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 10px;
-        }
-        .dashboard-table th {
-          font-size: 11px;
-          color: #9ca3af;
-          text-align: left;
-          padding: 12px 0;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        .dashboard-table td {
-          padding: 16px 0;
-          border-bottom: 1px solid #f1f3f6;
-        }
-        .dashboard-vehicle {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .dashboard-vehicle img {
-          width: 60px;
-          height: 60px;
-          border-radius: 6px;
-          object-fit: cover;
-        }
-        .dashboard-carName {
-          font-weight: 500;
-        }
-        .dashboard-plate {
-          font-size: 12px;
-          color: #9ca3af;
-          margin-top: 2px;
-        }
-        .dashboard-sub {
-          font-size: 12px;
-          color: #9ca3af;
-          margin-top: 2px;
-        }
-        .dashboard-total {
-          font-weight: 500;
-        }
-        .dashboard-status {
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 500;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .dashboard-status::before {
-          content: "";
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          display: inline-block;
-        }
-        .dashboard-status.progress {
-          background: #e7f8ef;
-          color: #16a34a;
-        }
-        .dashboard-status.progress::before {
-          background: #16a34a;
-        }
-        .dashboard-status.confirmed {
-          background: #eef4ff;
-          color: #2563eb;
-        }
-        .dashboard-status.confirmed::before {
-          background: #2563eb;
-        }
-        .dashboard-status.pending {
-          background: #fff3e6;
-          color: #f59e0b;
-        }
-        .dashboard-status.pending::before {
-          background: #f59e0b;
-        }
-        .dashboard-modify {
-          border: none;
-          background: none;
-          color: #2563eb;
-          cursor: pointer;
-        }
-        .dashboard-bottom {
-          display: flex;
-          gap: 20px;
-          margin-top: 20px;
-        }
-        .dashboard-help, .dashboard-invoice {
-          flex: 1;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 20px;
-        }
-        .dashboard-help h4, .dashboard-invoice h4 {
-          margin-bottom: 8px;
-        }
-        .dashboard-help p, .dashboard-invoice p {
-          font-size: 14px;
-          color: #6b7280;
-          margin-bottom: 12px;
-        }
-        .dashboard-rentBtn {
-          background: #2563eb;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-      `}</style>
-
-      <Sidebar />
-
-      <div className="dashboard-main">
-        <div className="dashboard-topbar">
-          <div className="dashboard-search">
-            <Search size={20} />
-            <input placeholder="Search bookings, invoices..." />
+    <div className="p-8 w-full">{/* Top Bar */}
+      {/* Top Bar */}
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search bookings..."
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
-          
         </div>
-
-        <div className="dashboard-header">
-          <div>
-            <h1>Welcome back, {userName || "Guest"}!</h1>
-            <p>Here is an overview of your car rental activity</p>
-          </div>
-          <button className="dashboard-bookBtn">
-            <Link to="/VehicleCatalogPage">Book New Car</Link>
+        <div className="flex items-center gap-4">
+          <button className="p-2 hover:bg-slate-100 rounded-lg transition">
+            <Bell size={20} className="text-slate-600" />
           </button>
-        </div>
-
-        <div className="dashboard-stats">
-          <div className="dashboard-card">
-            <div className="dashboard-cardTop">
-              <Key size={18} />
-              <span style={{ color: "#16a34a" }}>+{stats.activeRentals}%</span>
-            </div>
-            <div className="dashboard-cardTitle">Active Rentals</div>
-            <div className="dashboard-cardValue">{stats.activeRentals}</div>
-          </div>
-
-          <div className="dashboard-card">
-            <div className="dashboard-cardTop">
-              <Calendar size={18} />
-              <span style={{ color: "#6b7280" }}>{stats.upcomingBookings > 0 ? `+${stats.upcomingBookings}` : '0'}%</span>
-            </div>
-            <div className="dashboard-cardTitle">Upcoming Bookings</div>
-            <div className="dashboard-cardValue">{stats.upcomingBookings}</div>
-          </div>
-
-          <div className="dashboard-card">
-            <div className="dashboard-cardTop">
-              <DollarSign size={18} />
-              <span style={{ color: "#ef4444" }}>-5%</span>
-            </div>
-            <div className="dashboard-cardTitle">Total Spent</div>
-            <div className="dashboard-cardValue">${stats.totalSpent}</div>
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+            {userName.charAt(0).toUpperCase()}
           </div>
         </div>
+      </div>
 
-        <div className="dashboard-tableCard">
-          <h3>My Bookings</h3>
-          <table className="dashboard-table">
-            <thead>
-              <tr>
-                <th>VEHICLE</th>
-                <th>DATES</th>
-                <th>TOTAL</th>
-                <th>STATUS</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.length === 0 ? (
-                <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
-                    No reservations found. Book your first car!
-                  </td>
+      {/* Welcome Header */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Welcome back, {userName}! 👋
+          </h1>
+          <p className="text-slate-600">
+            Here's your car rental activity at a glance
+          </p>
+        </div>
+        <Link
+          to="/rent-car"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+        >
+          <Car size={18} />
+          Book a Car
+        </Link>
+      </div>
+
+      {/* Stats Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Active Rentals Card */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle2 className="text-green-600" size={24} />
+            </div>
+            <span className="text-green-600 font-semibold text-sm">Active</span>
+          </div>
+          <p className="text-slate-600 text-sm mb-1">Active Rentals</p>
+          <h3 className="text-3xl font-bold text-slate-900">
+            {stats.activeRentals}
+          </h3>
+          <div className="flex items-center gap-1 mt-3 text-green-600 text-sm">
+            <TrendingUp size={14} />
+            Ongoing rentals
+          </div>
+        </div>
+
+        {/* Upcoming Bookings Card */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Clock className="text-blue-600" size={24} />
+            </div>
+            <span className="text-blue-600 font-semibold text-sm">Pending</span>
+          </div>
+          <p className="text-slate-600 text-sm mb-1">Upcoming Bookings</p>
+          <h3 className="text-3xl font-bold text-slate-900">
+            {stats.upcomingBookings}
+          </h3>
+          <div className="flex items-center gap-1 mt-3 text-blue-600 text-sm">
+            <Clock size={14} />
+            Coming soon
+          </div>
+        </div>
+
+        {/* Total Spent Card */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="text-amber-600" size={24} />
+            </div>
+            <span className="text-amber-600 font-semibold text-sm">Total</span>
+          </div>
+          <p className="text-slate-600 text-sm mb-1">Total Spent</p>
+          <h3 className="text-3xl font-bold text-slate-900">
+            ${stats.totalSpent}
+          </h3>
+          <div className="flex items-center gap-1 mt-3 text-amber-600 text-sm">
+            <DollarSign size={14} />
+            All time spending
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Bookings Table */}
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold text-slate-900">Recent Bookings</h2>
+            <Link
+              to="/history"
+              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            >
+              View All <ChevronRight size={16} />
+            </Link>
+          </div>
+        </div>
+
+        {bookings.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Car className="text-slate-400" size={32} />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              No bookings yet
+            </h3>
+            <p className="text-slate-600 mb-4">
+              Start your journey by booking a car today!
+            </p>
+            <Link
+              to="/rent-car"
+              className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+            >
+              <Car size={16} />
+              Explore Vehicles
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
+                    Vehicle
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
+                    Dates
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
+                    Duration
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
+                    Total
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
+                    Action
+                  </th>
                 </tr>
-              ) : (
-                bookings.map((booking) => (
-                  <tr key={booking.id}>
-                    <td className="dashboard-vehicle">
-                      <img
-                        src={booking.vehicle?.image_url || "https://via.placeholder.com/60"}
-                        alt={booking.vehicle?.name || "Car"}
-                      />
-                      <div>
-                        <div className="dashboard-carName">{booking.vehicle?.name || "Unknown Vehicle"}</div>
-                        <div className="dashboard-plate">Plate: {booking.vehicle?.plate_number || "N/A"}</div>
+              </thead>
+              <tbody>
+                {bookings.map((booking) => (
+                  <tr
+                    key={booking.id}
+                    className="border-b border-slate-200 hover:bg-slate-50 transition"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center">
+                          <Car className="text-slate-600" size={20} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">
+                            Vehicle #{booking.vehicle_id}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            Reservation #{booking.id}
+                          </p>
+                        </div>
                       </div>
                     </td>
-                    <td>
-                      <div>{formatDate(booking.start_date)} - {formatDate(booking.end_date)}</div>
-                      <div className="dashboard-sub">{calculateDuration(booking.start_date, booking.end_date)}</div>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {formatDate(booking.date_debut)} to{" "}
+                      {formatDate(booking.date_fin)}
                     </td>
-                    <td className="dashboard-total">${parseFloat(booking.total_price).toFixed(2)}</td>
-                    <td>
-                      <span className={`dashboard-status ${getStatusClass(booking.status)}`}>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {booking.nombre_jours} day{booking.nombre_jours > 1 ? "s" : ""}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">
+                      ${parseFloat(booking.prix).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusClass(
+                          booking.status
+                        )}`}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            getStatusClass(booking.status).includes("green")
+                              ? "bg-green-600"
+                              : getStatusClass(booking.status).includes("blue")
+                              ? "bg-blue-600"
+                              : "bg-amber-600"
+                          }`}
+                        ></div>
                         {getStatusText(booking.status)}
                       </span>
                     </td>
-                    <td>
-                      <button className="dashboard-modify" onClick={() => window.location.href = `/booking/${booking.id}`}>
-                        Modify
+                    <td className="px-6 py-4">
+                      <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm transition">
+                        View
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <Bell className="text-blue-600" size={32} />
+          </div>
+          <h4 className="font-bold text-slate-900 mb-2">Need Help?</h4>
+          <p className="text-slate-600 text-sm mb-4">
+            Our support team is ready to assist you 24/7
+          </p>
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-sm">
+            Contact Support
+          </button>
         </div>
 
-        <div className="dashboard-bottom">
-          <div className="dashboard-help">
-            <h4>Need help with a rental?</h4>
-            <p>Our support team is available 24/7</p>
-            <button className="dashboard-rentBtn">Chat Now</button>
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <DollarSign className="text-amber-600" size={32} />
           </div>
-          <div className="dashboard-invoice">
-            <h4>Recent Invoices</h4>
-            <p>Download your latest statements</p>
-            <button className="dashboard-rentBtn">View All</button>
-          </div>
+          <h4 className="font-bold text-slate-900 mb-2">Special Offers</h4>
+          <p className="text-slate-600 text-sm mb-4">
+            Check out exclusive deals and discounts for you
+          </p>
+          <button className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold text-sm">
+            View Offers
+          </button>
         </div>
       </div>
     </div>

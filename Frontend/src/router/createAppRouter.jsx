@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { mapRoutesToRouter } from "../helpers/routeHelpers";
 import AppLayout from "../layouts/AppLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 import { guestRouteLoader, privateRouteLoader } from "./authLoaders";
 import LoginPage from "../components/auth/LoginPage";
 import RegisterPage from "../components/auth/RegisterPage";
@@ -15,7 +16,8 @@ import HomePage from "../pages/HomePage";
 import Dashboard from "../components/dashboard/Dashboard";
 import HistoryPage from "../components/dashboard/HistoryPage";
 import DriveEaseProfile from "../components/profile/DriveEaseProfile";
-
+import RatingsPage from "../pages/RatingsPage";
+import RentCarPage from "../pages/RentCarPage";
 import ReservationSuccessPage from "../pages/ReservationSuccessPage";
 import ReviewsPage from "../pages/ReviewsPage";
 
@@ -37,69 +39,52 @@ const publicRoutes = mapRoutesToRouter([
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
   { path: "/notifications", element: <NotificationsPage /> },
-
 ]);
 
-const privateRoutes = mapRoutesToRouter([
+// Dashboard routes (with sidebar) - Full paths since no parent
+const dashboardRoutes = mapRoutesToRouter([
   {
     path: "/dashboard",
-    element: (
-      <PlaceholderPage
-        title="Tableau de bord"
-        message="Le contenu principal du tableau de bord sera ajouté ici prochainement."
-      />
-    ),
+    element: <Dashboard />,
   },
   {
-    path: "/dashboard/stats",
-    element: (
-      <PlaceholderPage
-        title="Statistiques"
-        message="Cette page affichera bientôt vos indicateurs et graphiques de performance."
-      />
-    ),
+    path: "/history",
+    element: <HistoryPage />,
   },
   {
-    path: "/bookings",
-    element: (
-      <PlaceholderPage
-        title="Réservations"
-        message="La liste et le suivi de vos réservations seront disponibles ici prochainement."
-      />
-    ),
+    path: "/ratings",
+    element: <RatingsPage />,
   },
   {
     path: "/profile",
     element: <DriveEaseProfile />,
   },
   {
-    path: "/settings",
-    element: (
-      <PlaceholderPage
-        title="Paramètres"
-        message="Les préférences du compte et les options d'application seront ajoutées ici."
-      />
-    ),
+    path: "/rent-car",
+    element: <RentCarPage />,
   },
-  {
-    path: "/dashboard",
-    element: (
-      <Dashboard/>
-    ),
-  },
-  {
-      path: "/history",
-      element: (
-        <HistoryPage/>
-      ),
-  },
+]);
+
+// Non-dashboard private routes (without sidebar)
+const otherPrivateRoutes = mapRoutesToRouter([
   { path: "/booking-review", element: <ReservationPage /> },
-  { path: "/notifications", element: <NotificationsPage /> },
   { path: "/reviews", element: <ReviewsPage /> },
   { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
   { path: "/reservation", element: <ReservationPage /> },
   { path: "/reservation-reussie", element: <ReservationSuccessPage /> },
 ]);
+
+// Dashboard group (with sidebar layout) - NO PATH needed
+const dashboardGroup = {
+  element: <DashboardLayout />,
+  children: dashboardRoutes,
+};
+
+// All private routes combined
+const privateRoutes = [
+  dashboardGroup,
+  ...otherPrivateRoutes,
+];
 
 export function createAppRouter() {
   return createBrowserRouter([

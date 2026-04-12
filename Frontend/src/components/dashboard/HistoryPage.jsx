@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, DollarSign, Car, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import { getUserReservations } from "../../services/reservation";
 
 export default function HistoryPage() {
   const [reservations, setReservations] = useState([]);
@@ -19,25 +19,29 @@ export default function HistoryPage() {
   const fetchAllReservations = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      
-      const response = await fetch(`http://localhost:8000/api/reservations/my?email=${userEmail}`, {
-        headers: {
-          "Authorization": token ? `Bearer ${token}` : "",
-          "Content-Type": "application/json"
-        }
-      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Get user ID from localStorage
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id;
+
+      if (!userId) {
+        console.warn("[HISTORY PAGE] User ID not found in localStorage");
+        setReservations([]);
+        return;
       }
 
-      const data = await response.json();
-      // Show ALL reservations, most recent first
-      setReservations(data.reverse());
-      
+      console.log("[HISTORY PAGE] Fetching all reservations for userId:", userId);
+
+      // Fetch reservations from API
+      const data = await getUserReservations(userId);
+
+      console.log("[HISTORY PAGE] ✅ Received reservations:", data);
+
+      // Sort by most recent first
+      setReservations(data || []);
     } catch (err) {
-      console.error("Error fetching reservations:", err);
+      console.error("[HISTORY PAGE] ❌ Error fetching reservations:", err);
+      setReservations([]);
     } finally {
       setLoading(false);
     }
@@ -105,21 +109,18 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="dashboard-layout">
-        <Sidebar />
-        <div className="dashboard-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ 
-              width: '48px', 
-              height: '48px', 
-              border: '3px solid #e5e7eb', 
-              borderTopColor: '#2563eb', 
-              borderRadius: '50%', 
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 20px'
-            }}></div>
-            <p>Loading your reservation history...</p>
-          </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '48px', 
+            height: '48px', 
+            border: '3px solid #e5e7eb', 
+            borderTopColor: '#2563eb', 
+            borderRadius: '50%', 
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <p>Loading your reservation history...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -132,213 +133,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="dashboard-layout">
-      <style>{`
-        .dashboard-layout {
-          display: flex;
-          min-height: 100vh;
-          background: #f6f8fb;
-        }
-        .dashboard-main {
-          flex: 1;
-          padding: 35px 40px;
-          overflow-y: auto;
-        }
-        .history-header {
-          margin-bottom: 30px;
-        }
-        .history-header h1 {
-          font-size: 26px;
-          font-weight: 600;
-          margin: 0 0 8px 0;
-        }
-        .history-header p {
-          font-size: 14px;
-          color: #6b7280;
-        }
-        .history-search {
-          margin-bottom: 25px;
-        }
-        .search-wrapper {
-          position: relative;
-          max-width: 400px;
-        }
-        .search-wrapper input {
-          width: 100%;
-          padding: 10px 14px 10px 40px;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 14px;
-          outline: none;
-          background: white;
-        }
-        .search-wrapper input:focus {
-          border-color: #2563eb;
-          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-        }
-        .search-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #9ca3af;
-        }
-        .history-stats {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 30px;
-        }
-        .stat-card {
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 20px;
-          flex: 1;
-        }
-        .stat-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-        .stat-card-title {
-          font-size: 13px;
-          color: #6b7280;
-        }
-        .stat-card-value {
-          font-size: 28px;
-          font-weight: 600;
-          color: #1f2937;
-        }
-        .history-table-container {
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          overflow-x: auto;
-        }
-        .history-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .history-table th {
-          text-align: left;
-          padding: 15px 20px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #9ca3af;
-          border-bottom: 1px solid #e5e7eb;
-          background: #f9fafb;
-        }
-        .history-table td {
-          padding: 16px 20px;
-          border-bottom: 1px solid #f1f3f6;
-          font-size: 14px;
-        }
-        .vehicle-cell {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .vehicle-cell img {
-          width: 50px;
-          height: 50px;
-          border-radius: 8px;
-          object-fit: cover;
-        }
-        .vehicle-name {
-          font-weight: 500;
-          margin-bottom: 4px;
-        }
-        .vehicle-plate {
-          font-size: 11px;
-          color: #9ca3af;
-        }
-        .status-badge {
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 500;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .status-badge::before {
-          content: "";
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          display: inline-block;
-        }
-        .status-badge.progress {
-          background: #e7f8ef;
-          color: #16a34a;
-        }
-        .status-badge.progress::before {
-          background: #16a34a;
-        }
-        .status-badge.confirmed {
-          background: #eef4ff;
-          color: #2563eb;
-        }
-        .status-badge.confirmed::before {
-          background: #2563eb;
-        }
-        .status-badge.pending {
-          background: #fff3e6;
-          color: #f59e0b;
-        }
-        .status-badge.pending::before {
-          background: #f59e0b;
-        }
-        .view-link {
-          color: #2563eb;
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 500;
-        }
-        .view-link:hover {
-          text-decoration: underline;
-        }
-        .pagination {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 20px;
-          border-top: 1px solid #e5e7eb;
-          background: white;
-        }
-        .pagination button {
-          padding: 8px 16px;
-          border: 1px solid #e5e7eb;
-          background: white;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 13px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .pagination button:hover:not(:disabled) {
-          background: #f9fafb;
-        }
-        .pagination button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .pagination span {
-          font-size: 13px;
-          color: #6b7280;
-        }
-        .empty-state {
-          text-align: center;
-          padding: 60px 20px;
-          color: #9ca3af;
-        }
-      `}</style>
-
-      <Sidebar />
-
-      <div className="dashboard-main">
+    <div className="p-8 w-full">
         <div className="history-header">
           <h1>My Rental History</h1>
           <p>View all your past and upcoming reservations</p>
@@ -381,7 +176,7 @@ export default function HistoryPage() {
               <DollarSign size={20} color="#f59e0b" />
             </div>
             <div className="stat-card-value">
-              ${reservations.reduce((sum, r) => sum + (parseFloat(r.total_price) || 0), 0).toFixed(2)}
+              ${reservations.reduce((sum, r) => sum + (parseFloat(r.prix) || 0), 0).toFixed(2)}
             </div>
           </div>
         </div>
@@ -413,23 +208,22 @@ export default function HistoryPage() {
                     <td>#{reservation.id}</td>
                     <td>
                       <div className="vehicle-cell">
-                        <img 
-                          src={reservation.vehicle?.image_url || "https://via.placeholder.com/50"} 
-                          alt={reservation.vehicle?.name}
-                        />
+                        <div className="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center">
+                          <Car size={20} color="#666" />
+                        </div>
                         <div>
-                          <div className="vehicle-name">{reservation.vehicle?.name || "Unknown Vehicle"}</div>
-                          <div className="vehicle-plate">Plate: {reservation.vehicle?.plate_number || "N/A"}</div>
+                          <div className="vehicle-name">Vehicle #{reservation.vehicle_id}</div>
+                          <div className="vehicle-plate">Reservation #{reservation.id}</div>
                         </div>
                       </div>
                     </td>
                     <td>
-                      {formatDate(reservation.start_date)}<br />
+                      {formatDate(reservation.date_debut)}<br />
                       <span style={{ fontSize: '10px', color: '#9ca3af' }}>to</span><br />
-                      {formatDate(reservation.end_date)}
+                      {formatDate(reservation.date_fin)}
                     </td>
-                    <td>{calculateDuration(reservation.start_date, reservation.end_date)}</td>
-                    <td style={{ fontWeight: 500 }}>${parseFloat(reservation.total_price).toFixed(2)}</td>
+                    <td>{reservation.nombre_jours} day{reservation.nombre_jours > 1 ? 's' : ''}</td>
+                    <td style={{ fontWeight: 500 }}>${parseFloat(reservation.prix).toFixed(2)}</td>
                     <td>
                       <span className={`status-badge ${getStatusClass(reservation.status)}`}>
                         {getStatusText(reservation.status)}
@@ -462,6 +256,6 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
-    </div>
+    
   );
 }
