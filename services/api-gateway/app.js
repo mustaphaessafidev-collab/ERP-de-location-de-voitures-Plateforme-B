@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import "dotenv/config";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 dotenv.config();
@@ -15,66 +16,88 @@ app.get("/", (req, res) => {
   res.json({ message: "API Gateway is working" });
 });
 
-// Auth Service Proxy
+// AUTH
 app.use(
+  "/api/auth",
   createProxyMiddleware({
-    target: process.env.AUTH_SERVICE_URL || "http://localhost:3001",
+    target: process.env.AUTH_SERVICE_URL,
     changeOrigin: true,
-    pathFilter: ["/api/auth", "/api/user", "/api/validate", "/api/notifications"],
+    pathRewrite: {
+      "^/api/auth": "/api/auth",
+    },
+    ignorePath: false,
   })
 );
 
-// Review Service Proxy
+// ADMIN
 app.use(
+  "/api/admin",
   createProxyMiddleware({
-    target: process.env.REVIEW_SERVICE_URL || "http://localhost:3002",
+    target: process.env.ADMIN_SERVICE_URL,
     changeOrigin: true,
-    pathFilter: ["/api/reviews"],
   })
 );
 
-//test github
-// app.use(
-//   "/api/reservations",
-//   createProxyMiddleware({
-//     target: process.env.AUTH_SERVICE_URL,
-//     changeOrigin: true,
-//     pathRewrite: { "^/api/reservations": "/api/reservations" },
-//   })
-// );
+// PROFILE
+app.use(
+  "/api/profile",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/profile": "/api/profile",
+    },
+    ignorePath: false,
+  })
+);
 
-// app.use(
-//   "/api/notifications",
-//   createProxyMiddleware({
-//     target: process.env.AUTH_SERVICE_URL,
-//     changeOrigin: true,
-//     pathRewrite: { "^/api/notifications": "/api/notifications" },
-//   })
-// );
+// USERS
+app.use(
+  "/api/users",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/users": "/api/users",
+    },
+    ignorePath: false,
+  })
+);
 
+// AGENTS
+app.use(
+  "/api/agents",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+  })
+);
 
-// app.use(
-//   "/api/tickets",
-//   createProxyMiddleware({
-//     target: process.env.TICKET_SERVICE_URL,
-//     changeOrigin: true,
-//   })
-// );
+// TICKETS
+app.use(
+  "/api/tickets",
+  createProxyMiddleware({
+    target: `${process.env.TICKET_SERVICE_URL}/api/tickets`,
+    changeOrigin: true,
+  })
+);
 
-// app.use(
-//   "/api/admin",
-//   createProxyMiddleware({
-//     target: process.env.ADMIN_SERVICE_URL,
-//     changeOrigin: true,
-//   })
-// );
+// AI
+app.use(
+  "/api/ai",
+  createProxyMiddleware({
+    target: process.env.AI_SERVICE_URL,
+    changeOrigin: true,
+  })
+);
 
-// app.use(
-//   "/api/ai",
-//   createProxyMiddleware({
-//     target: process.env.AI_SERVICE_URL,
-//     changeOrigin: true,
-//   })
-// );
+// RESERVATIONS
+app.use(
+  "/api/reservations",
+  createProxyMiddleware({
+    target: `${process.env.RESERVATION_SERVICE_URL}/api/reservations`,
+    changeOrigin: true,
+  })
+);
 
 export default app;

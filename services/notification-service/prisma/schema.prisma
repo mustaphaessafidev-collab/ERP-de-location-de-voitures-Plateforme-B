@@ -8,14 +8,14 @@ datasource db {
 
 model Notification {
   id          String   @id @default(cuid())
-  userId      String
-  userRole    String   @default("CLIENT")
+  userId      Int?     @map("user_id")
+  userRole    String   @default("CLIENT") @map("user_role")
   type        String
   title       String?
   message     String
-  referenceId String?
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  referenceId String?  @map("reference_id")
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("notifications")
 }

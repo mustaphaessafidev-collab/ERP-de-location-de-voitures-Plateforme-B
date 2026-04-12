@@ -11,6 +11,20 @@ const apiClient = axios.create({
   },
 });
 
+// Add request interceptor to include auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Auth Service Object
 export const authService = {
   /**
@@ -67,6 +81,95 @@ export const authService = {
     } catch (error) {
        if (error.response && error.response.data) {
         throw new Error(error.response.data.message || "Validation failed");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get user profile from API
+   */
+  async getProfile() {
+    try {
+      const response = await apiClient.get("/profile/profile");
+      if (response.data) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+      // Fallback to localStorage if API fails
+      return this.getCurrentUser();
+    }
+  },
+
+  async updatePersonalInfo(personalData) {
+    try {
+      const response = await apiClient.put("/profile/personal-info", personalData);
+      if (response.data?.profile) {
+        localStorage.setItem("user", JSON.stringify(response.data.profile));
+      }
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Personal information update failed");
+      }
+      throw error;
+    }
+  },
+
+  async updateProfilePhoto(photoData) {
+    try {
+      const response = await apiClient.put("/profile/photo", photoData);
+      if (response.data?.profile) {
+        localStorage.setItem("user", JSON.stringify(response.data.profile));
+      }
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Profile photo update failed");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Update user password
+   */
+  async updatePassword(newPassword, confirmPassword) {
+    try {
+      const response = await apiClient.put("/profile/password", {
+        newPassword,
+        confirmPassword,
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Password update failed");
+      }
+      throw error;
+    }
+  },
+
+  async updateDrivingLicense(licenseData) {
+    try {
+      const response = await apiClient.put("/profile/license", licenseData);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const details = Array.isArray(error.response.data.errors)
+          ? error.response.data.errors.join("\n")
+          : error.response.data.message;
+        throw new Error(details || "Driving license update failed");
       }
       throw error;
     }

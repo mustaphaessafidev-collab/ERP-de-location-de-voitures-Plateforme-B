@@ -13,6 +13,7 @@ export default function UserMenu() {
 
   const displayName = user?.nom_complet || user?.name || "Compte";
   const email = user?.email || "";
+  const profilePhoto = user?.profilePhotoData || "";
 
   useEffect(() => {
     function onDocClick(e) {
@@ -37,9 +38,17 @@ export default function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
-          {displayName.charAt(0).toUpperCase()}
-        </div>
+        {profilePhoto ? (
+          <img
+            src={profilePhoto}
+            alt={displayName}
+            className="h-9 w-9 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <ChevronDown className={`h-4 w-4 text-slate-500 transition ${open ? "rotate-180" : ""}`} />
       </button>
 

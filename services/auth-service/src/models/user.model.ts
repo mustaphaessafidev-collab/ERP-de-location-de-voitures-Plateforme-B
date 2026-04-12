@@ -5,14 +5,42 @@
 export interface User {
   id: number;
   nom_complet: string;
+
+  
+  num_permis?: string | null;
+ 
+
   cin?: string | null;
   telephone?: string | null;
+
   email: string;
   adresse: string | null;
+  profilePhotoData?: string | null;
+  profilePhotoName?: string | null;
+  profilePhotoMimeType?: string | null;
   password: string;
   isEmailValidated: boolean | null;
   created_at: Date;
   updatedAt: Date;
+}
+
+export interface DrivingLicense {
+  id: number;
+  userId: number;
+  licenseNumber: string;
+  expiryDate: Date | null;
+  frontDocumentData: string | null;
+  frontDocumentName: string | null;
+  frontDocumentMimeType: string | null;
+  backDocumentData: string | null;
+  backDocumentName: string | null;
+  backDocumentMimeType: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserProfileResponse extends UserResponse {
+  drivingLicense?: DrivingLicense | null;
 }
 
 /** User without password, safe for API responses and JWT payload context */
