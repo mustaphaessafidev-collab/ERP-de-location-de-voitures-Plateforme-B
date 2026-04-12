@@ -5,7 +5,7 @@ export default function Header({ total }) {
         <h1 className="text-xl font-semibold text-slate-800">
           Catalogue des véhicules
         </h1>
-
+// header avec total
         <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
           {total} résultat{total > 1 ? "s" : ""}
         </span>
