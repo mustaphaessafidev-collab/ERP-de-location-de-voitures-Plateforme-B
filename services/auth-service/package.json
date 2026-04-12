@@ -21,6 +21,7 @@
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "bcrypt": "^6.0.0",
+    "car-rental-erp-root": "file:../..",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "ejs": "^5.0.1",
@@ -32,9 +33,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/ejs": "^3.1.5",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
+    "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",

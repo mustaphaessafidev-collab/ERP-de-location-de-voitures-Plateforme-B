@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
+    "car-rental-erp-root": "file:..",
     "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",
     "lucide": "^1.7.0",

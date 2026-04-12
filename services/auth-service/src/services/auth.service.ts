@@ -242,7 +242,13 @@ export const authService = {
   },
 
   async upsertDrivingLicense(userId: number, payload: unknown) {
-    const data = upsertDrivingLicenseSchema.parse(payload) as UpsertDrivingLicenseInput;
+    let data;
+    try {
+      data = upsertDrivingLicenseSchema.parse(payload) as UpsertDrivingLicenseInput;
+    } catch (e) {
+      console.error("Driving License Validation Error:", e);
+      throw e;
+    }
     const user = await authRepository.findById(userId);
     if (!user) throw new UserNotFoundError();
 

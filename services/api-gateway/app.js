@@ -20,12 +20,8 @@ app.get("/", (req, res) => {
 app.use(
   "/api/auth",
   createProxyMiddleware({
-    target: process.env.AUTH_SERVICE_URL,
+    target: `${process.env.AUTH_SERVICE_URL}/api/auth`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/api/auth": "/api/auth",
-    },
-    ignorePath: false,
   })
 );
 
@@ -42,12 +38,8 @@ app.use(
 app.use(
   "/api/profile",
   createProxyMiddleware({
-    target: process.env.AUTH_SERVICE_URL,
+    target: `${process.env.AUTH_SERVICE_URL}/api/profile`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/api/profile": "/api/profile",
-    },
-    ignorePath: false,
   })
 );
 
@@ -55,12 +47,8 @@ app.use(
 app.use(
   "/api/users",
   createProxyMiddleware({
-    target: process.env.AUTH_SERVICE_URL,
+    target: `${process.env.AUTH_SERVICE_URL}/api/users`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/api/users": "/api/users",
-    },
-    ignorePath: false,
   })
 );
 
@@ -87,6 +75,15 @@ app.use(
   "/api/ai",
   createProxyMiddleware({
     target: process.env.AI_SERVICE_URL,
+    changeOrigin: true,
+  })
+);
+
+// REVIEWS
+app.use(
+  "/api/reviews",
+  createProxyMiddleware({
+    target: `${process.env.REVIEW_SERVICE_URL}/api/reviews`,
     changeOrigin: true,
   })
 );
