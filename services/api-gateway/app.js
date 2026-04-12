@@ -36,29 +36,29 @@ app.use(
 );
 
 app.use(
-<<<<<<< HEAD
   "/api/profile",
-=======
-  "/api/users",
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
   createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-<<<<<<< HEAD
       "^/api/profile": "/api/profile",
     },
     ignorePath: false,
   })
 );
 
-//test github
-=======
-      "^/api/admin": "", 
+app.use(
+  "/api/users",
+  createProxyMiddleware({
+    target: process.env.AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/users": "/api/users",
     },
+    ignorePath: false,
   })
 );
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
+
 
 app.use(
   "/api/agents",

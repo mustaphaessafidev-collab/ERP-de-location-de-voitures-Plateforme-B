@@ -14,14 +14,9 @@ datasource db {
 model User {
   id               Int       @id @default(autoincrement())
   nom_complet      String
-<<<<<<< HEAD
   cin              String    @unique
   num_permis       String?
   telephone        String
-=======
-  cin              String?   @unique
-  telephone        String?
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
   email            String    @unique
   adresse          String?
   profilePhotoData String?   @map("profile_photo_data")
@@ -31,7 +26,6 @@ model User {
   isEmailValidated Boolean   @default(false) @map("is_email_validated")
   created_at       DateTime  @default(now())
   updatedAt        DateTime  @updatedAt @map("updated_at")
-
   passwordResets           PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
   drivingLicense          DrivingLicense?

@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+.sidebar {
+  width: 240px;
+  background: white;
+  min-height: 100vh;
+  border-right: 1px solid #e6e9ef;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
+
+.logo {
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 30px;
+  font-size: 18px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 14px;  
+  border-radius: 10px;   
+  color: #6b7280;
+  cursor: pointer;
+  margin-bottom: 20px;  
+  text-decoration: none;
+}
+
+.navItem:hover {
+  background: #f1f5f9;
+}
+
+.navItem.active {
+  background: #eef4ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.rentBtn {
+  margin-top: auto;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}

@@ -12,7 +12,8 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
-
+import Dashboard from "../components/dashboard/Dashboard";
+import HistoryPage from "../components/dashboard/HistoryPage";
 import DriveEaseProfile from "../components/profile/DriveEaseProfile";
 
 import ReservationSuccessPage from "../pages/ReservationSuccessPage";
@@ -80,7 +81,18 @@ const privateRoutes = mapRoutesToRouter([
       />
     ),
   },
-
+  {
+    path: "/dashboard",
+    element: (
+      <Dashboard/>
+    ),
+  },
+  {
+      path: "/history",
+      element: (
+        <HistoryPage/>
+      ),
+  },
   { path: "/booking-review", element: <ReservationPage /> },
   { path: "/notifications", element: <NotificationsPage /> },
   { path: "/reviews", element: <ReviewsPage /> },
