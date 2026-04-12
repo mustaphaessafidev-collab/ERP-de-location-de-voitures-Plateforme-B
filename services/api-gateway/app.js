@@ -77,9 +77,7 @@ app.use(
   })
 );
 
-<<<<<<< HEAD
-export default app;
-=======
+
 app.use(
   "/api/ai",
   createProxyMiddleware({
@@ -96,4 +94,4 @@ app.use(
   })
 );
 export default app;
->>>>>>> 1a92cc264f276ccbf61ba251e8cad6efa348dcc2
+
