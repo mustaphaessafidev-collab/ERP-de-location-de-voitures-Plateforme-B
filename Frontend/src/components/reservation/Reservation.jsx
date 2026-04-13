@@ -11,7 +11,7 @@ import { createReservation } from "../../services/reservation";
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
   const date = new Date(`${dateStr}T${timeStr || "10:00"}`);
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("fr-FR", {
     month: "short",
     day: "2-digit",
     year: "numeric",
@@ -89,7 +89,7 @@ export default function Reservation() {
   const bookingData = state?.bookingData ?? state;
   
   // State management - minimal
-  const [reservationStatus, setReservationStatus] = useState("Confirmed");
+  const [reservationStatus, setReservationStatus] = useState("Confirmee");
   const [isLoading, setIsLoading] = useState(false);
 
   // Extract booking data with defaults
@@ -108,7 +108,7 @@ export default function Reservation() {
   const city = bookingData?.city || "Terminal 1, level 0, Rental Car Center";
   const pickUpFormatted = formatDate(bookingData?.pickUpDate, bookingData?.pickUpTime);
   const returnFormatted = formatDate(bookingData?.returnDate, bookingData?.returnTime);
-  const isCancelled = reservationStatus === "Cancelled";
+  const isCancelled = reservationStatus === "Annulee";
 
   // Calculate progress
   const progressData = useMemo(() => {
@@ -145,11 +145,11 @@ export default function Reservation() {
     const yStart = 18;
 
     doc.setFontSize(18);
-    doc.text("Reservation Invoice", 14, yStart);
+    doc.text("Facture de reservation", 14, yStart);
     doc.setFontSize(11);
-    doc.text(`Reservation No: ${reservationId}`, 14, yStart + 8);
-    doc.text(`Status: ${reservationStatus}`, 14, yStart + 14);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, yStart + 20);
+    doc.text(`Reservation Ndeg: ${reservationId}`, 14, yStart + 8);
+    doc.text(`Statut: ${reservationStatus}`, 14, yStart + 14);
+    doc.text(`Generee le: ${new Date().toLocaleString("fr-FR")}`, 14, yStart + 20);
 
     let y = yStart + 30;
 
@@ -161,17 +161,17 @@ export default function Reservation() {
       doc.rect(14, y, 68, 40);
       doc.setFontSize(10);
       doc.setTextColor(120, 120, 120);
-      doc.text("Vehicle photo unavailable", 20, y + 22);
+      doc.text("Photo du vehicule indisponible", 20, y + 22);
       doc.setTextColor(0, 0, 0);
     }
 
     doc.setFontSize(12);
-    doc.text("Booking details", 90, y + 6);
+    doc.text("Details de reservation", 90, y + 6);
     doc.setFontSize(11);
-    doc.text(`Vehicle: ${vehicleName}`, 90, y + 14);
-    doc.text(`Agency: ${agency}`, 90, y + 21);
-    doc.text(`Pick-up: ${pickUpFormatted}`, 90, y + 28);
-    doc.text(`Drop-off: ${returnFormatted}`, 90, y + 35);
+    doc.text(`Vehicule: ${vehicleName}`, 90, y + 14);
+    doc.text(`Agence: ${agency}`, 90, y + 21);
+    doc.text(`Retrait: ${pickUpFormatted}`, 90, y + 28);
+    doc.text(`Retour: ${returnFormatted}`, 90, y + 35);
 
     y += 52;
     doc.setDrawColor(220, 220, 220);
@@ -179,17 +179,17 @@ export default function Reservation() {
     y += 8;
 
     doc.setFontSize(12);
-    doc.text("Pricing", 14, y);
+    doc.text("Tarification", 14, y);
     y += 8;
     doc.setFontSize(11);
-    doc.text(`Rental Rate (${days} days): ${formatMoney(basePrice)}`, 14, y);
+    doc.text(`Tarif location (${days} jours): ${formatMoney(basePrice)}`, 14, y);
     y += 7;
-    doc.text(`Insurance: ${formatMoney(insurancePrice)}`, 14, y);
+    doc.text(`Assurance: ${formatMoney(insurancePrice)}`, 14, y);
     y += 7;
-    doc.text(`Taxes & Fees: ${formatMoney(serviceFee)}`, 14, y);
+    doc.text(`Taxes et frais: ${formatMoney(serviceFee)}`, 14, y);
     y += 9;
     doc.setFontSize(13);
-    doc.text(`Total Amount: ${formatMoney(totalPrice)}`, 14, y);
+    doc.text(`Montant total: ${formatMoney(totalPrice)}`, 14, y);
 
     doc.save(`invoice-${reservationId.replace("#", "")}.pdf`);
   }, [reservationId, reservationStatus, vehicleImage, vehicleName, agency, pickUpFormatted, returnFormatted, days, basePrice, insurancePrice, serviceFee, totalPrice]);
@@ -208,7 +208,7 @@ export default function Reservation() {
 
       if (!userId) {
         throw new Error(
-          "User not authenticated. Please login again."
+          "Utilisateur non authentifie. Veuillez vous reconnecter."
         );
       }
 
@@ -230,7 +230,7 @@ export default function Reservation() {
 
       console.log("[FRONTEND] ✅ Reservation created:", reservation);
 
-      setReservationStatus("Confirmed");
+      setReservationStatus("Confirmee");
       addNotification(
         "success",
         "Réservation confirmée ",
@@ -244,8 +244,8 @@ export default function Reservation() {
         await axios.post("http://localhost:4004/api/notifications", {
           userId: String(userId),
           type: "RESERVATION",
-          title: "Reservation Created",
-          message: "Your reservation has been created successfully.",
+          title: "Reservation creee",
+          message: "Votre reservation a ete creee avec succes.",
           referenceId: String(reservation.id),
         });
         console.log("[FRONTEND] ✅ Notification created");
@@ -276,7 +276,7 @@ export default function Reservation() {
   }, [bookingData, reservationId, vehicleName, addNotification]);
 
   const handleCancel = useCallback(() => {
-    setReservationStatus("Cancelled");
+    setReservationStatus("Annulee");
     addNotification(
       "error",
       "Réservation annulée ❌",
@@ -289,8 +289,8 @@ export default function Reservation() {
     <section className="min-h-[calc(100vh-4rem)] bg-slate-100 px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-5">
           <div className="text-[11px] text-slate-500">
-            Dashboard / My Bookings /{" "}
-            <span className="font-medium text-slate-700">Reservation details</span>
+            Tableau de bord / Mes reservations /{" "}
+            <span className="font-medium text-slate-700">Details de reservation</span>
           </div>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -310,7 +310,7 @@ export default function Reservation() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-500">
-                Booked on {new Date().toLocaleDateString()} • {days} days
+                Reservee le {new Date().toLocaleDateString("fr-FR")} • {days} jours
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -318,20 +318,20 @@ export default function Reservation() {
                 onClick={handlePrint}
                 className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                Print
+                Imprimer
               </button>
               <button
                 onClick={handleModify}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
               >
-                Modify
+                Modifier
               </button>
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="mb-5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Rental Timeline
+              Chronologie de location
             </p>
             
             {/* SIMPLIFIED TIMELINE */}
@@ -343,9 +343,9 @@ export default function Reservation() {
                   progressData.currentStep === "in-progress" ? "bg-blue-100 text-blue-700" :
                   "bg-slate-100 text-slate-700"
                 }`}>
-                  {progressData.currentStep === "completed" && "✓ Completed"}
-                  {progressData.currentStep === "in-progress" && <><FaCar />   In Progress</>}
-                  {progressData.currentStep === "reserved" && "📅 Upcoming"}
+                  {progressData.currentStep === "completed" && "✓ Terminee"}
+                  {progressData.currentStep === "in-progress" && <><FaCar />   En cours</>}
+                  {progressData.currentStep === "reserved" && "📅 A venir"}
                 </div>
                 <span className="text-sm font-semibold text-slate-600">
                   {progressData.progressPercent.toFixed(0)}%
@@ -367,9 +367,9 @@ export default function Reservation() {
               {/* Timeline Steps */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { name: "reserved", label: "Reservation", icon: "✓", date: new Date().toLocaleDateString() },
-                  { name: "pickup", label: "Pick-up", icon: <FaCar />, date: bookingData?.pickUpDate },
-                  { name: "return", label: "Return", icon: "✓", date: bookingData?.returnDate }
+                  { name: "reserved", label: "Reservation", icon: "✓", date: new Date().toLocaleDateString("fr-FR") },
+                  { name: "pickup", label: "Retrait", icon: <FaCar />, date: bookingData?.pickUpDate },
+                  { name: "return", label: "Retour", icon: "✓", date: bookingData?.returnDate }
                 ].map((step) => {
                   const styles = getStepStyles(progressData.currentStep, step.name);
                   return (
@@ -385,15 +385,15 @@ export default function Reservation() {
               {/* Time Details - Minimal */}
               <div className="grid grid-cols-3 gap-2 text-xs pt-2">
                 <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-slate-600 text-[10px]">Pick-up</p>
+                  <p className="text-slate-600 text-[10px]">Retrait</p>
                   <p className="font-semibold text-slate-800 text-xs">{pickUpFormatted}</p>
                 </div>
                 <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-slate-600 text-[10px]">Duration</p>
-                  <p className="font-semibold text-slate-800 text-xs">{days} days</p>
+                  <p className="text-slate-600 text-[10px]">Duree</p>
+                  <p className="font-semibold text-slate-800 text-xs">{days} jours</p>
                 </div>
                 <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                  <p className="text-slate-600 text-[10px]">Return</p>
+                  <p className="text-slate-600 text-[10px]">Retour</p>
                   <p className="font-semibold text-slate-800 text-xs">{returnFormatted}</p>
                 </div>
               </div>
@@ -404,12 +404,12 @@ export default function Reservation() {
             <div className="space-y-4 lg:col-span-2">
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-slate-800">Vehicle Details</h2>
+                  <h2 className="text-sm font-semibold text-slate-800">Details du vehicule</h2>
                   <button
                     onClick={handleModify}
                     className="text-xs font-semibold text-blue-600"
                   >
-                    View Full Specs
+                    Voir les specifications
                   </button>
                 </div>
                 <div className="flex flex-col gap-4 md:flex-row">
@@ -420,11 +420,11 @@ export default function Reservation() {
                   />
                   <div className="space-y-2">
                     <h3 className="text-[28px] font-bold leading-tight text-slate-800">{vehicleName}</h3>
-                    <p className="text-xs text-slate-500">Standard Range Plus - Midnight Silver</p>
+                    <p className="text-xs text-slate-500">Standard Range Plus - Argent nuit</p>
                     <div className="flex flex-wrap gap-4 text-xs text-slate-600">
-                      <span>Electric</span>
-                      <span>Automatic</span>
-                      <span>{bookingData?.seats || 5} Seats</span>
+                      <span>Electrique</span>
+                      <span>Automatique</span>
+                      <span>{bookingData?.seats || 5} places</span>
                     </div>
                   </div>
                 </div>
@@ -434,13 +434,13 @@ export default function Reservation() {
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                   <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
                     <FaMapMarkerAlt size={11} className="text-blue-600" />
-                    Pick-up Location
+                    Lieu de retrait
                   </p>
                   <h4 className="mt-2 text-sm font-semibold text-slate-800">{agency}</h4>
                   <p className="text-xs text-slate-500">{city}</p>
                   <p className="mt-3 flex items-center gap-1 text-xs text-slate-600">
                     <FaClock size={11} />
-                    Open 24/7
+                    Ouvert 24h/24 7j/7
                   </p>
                   <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
                     <FaPhone size={11} />
@@ -450,13 +450,13 @@ export default function Reservation() {
                     onClick={() => handleOpenMap(`${agency}, ${city}`)}
                     className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-100 transition-colors"
                   >
-                    View on Map
+                    Voir sur la carte
                   </button>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                   <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
                     <FaRoad size={11} className="text-blue-600" />
-                    Drop-off Location
+                    Lieu de retour
                   </p>
                   <h4 className="mt-2 text-sm font-semibold text-slate-800">Berlin City Center - Alexanderplatz</h4>
                   <p className="text-xs text-slate-500">Karl-Liebknecht-Str. 5, 10178 Berlin, Germany</p>
@@ -474,7 +474,7 @@ export default function Reservation() {
                     }
                     className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-100 transition-colors"
                   >
-                    View on Map
+                    Voir sur la carte
                   </button>
                 </div>
               </div>
@@ -482,24 +482,24 @@ export default function Reservation() {
 
             <aside className="space-y-4">
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-4 text-sm font-semibold text-slate-800">Payment Summary</h3>
+                <h3 className="mb-4 text-sm font-semibold text-slate-800">Recapitulatif de paiement</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between text-slate-500">
-                    <span>Rental Rate ({days} days)</span>
+                    <span>Tarif location ({days} jours)</span>
                     <span className="font-semibold text-slate-800">{formatMoney(basePrice)}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
-                    <span>Premium insurance</span>
+                    <span>Assurance premium</span>
                     <span className="font-semibold text-slate-800">{formatMoney(insurancePrice)}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
-                    <span>Taxes & Fees</span>
+                    <span>Taxes et frais</span>
                     <span className="font-semibold text-slate-800">{formatMoney(serviceFee)}</span>
                   </div>
                 </div>
                 <div className="mt-4 border-t border-slate-200 pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-800">Total Amount</span>
+                    <span className="text-sm font-semibold text-slate-800">Montant total</span>
                     <span className="text-[30px] font-bold text-blue-600">
                       {formatMoney(totalPrice)}
                     </span>
@@ -508,7 +508,7 @@ export default function Reservation() {
                     onClick={handleDownloadReceipt}
                     className="mt-4 w-full rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-blue-600"
                   >
-                    Download Invoice (PDF)
+                    Telecharger la facture (PDF)
                   </button>
                 </div>
               </div>
@@ -517,7 +517,7 @@ export default function Reservation() {
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-600">
-              Need to change your plans? Free cancellation available within 24h.
+              Besoin de modifier vos plans ? Annulation gratuite sous 24h.
             </p>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
@@ -529,7 +529,7 @@ export default function Reservation() {
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                {isLoading ? "Confirming..." : "Confirm"}
+                {isLoading ? "Confirmation..." : "Confirmer"}
               </button>
               <button
                 onClick={handleCancel}
@@ -540,7 +540,7 @@ export default function Reservation() {
                     : "text-red-600 hover:bg-red-50"
                 }`}
               >
-                Cancel
+                Annuler
               </button>
             </div>
           </div>

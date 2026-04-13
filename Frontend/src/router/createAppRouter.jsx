@@ -69,7 +69,7 @@ const dashboardRoutes = mapRoutesToRouter([
 const otherPrivateRoutes = mapRoutesToRouter([
   { path: "/booking-review", element: <ReservationPage /> },
   { path: "/reviews", element: <ReviewsPage /> },
-  { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
+  { path: "/test-success", element: <PlaceholderPage title="Test réussi" message="Message de test réussi" /> },
   { path: "/reservation", element: <ReservationPage /> },
   { path: "/reservation-reussie", element: <ReservationSuccessPage /> },
 ]);

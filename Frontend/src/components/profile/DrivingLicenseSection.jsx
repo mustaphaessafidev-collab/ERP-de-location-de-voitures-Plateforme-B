@@ -9,7 +9,7 @@ export default function DrivingLicenseSection({ formData, setFormData, onSaveDri
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert('Each license file must be 5MB or smaller');
+      alert('Chaque fichier du permis doit faire 5 Mo maximum');
       e.target.value = '';
       return;
     }
@@ -42,7 +42,7 @@ export default function DrivingLicenseSection({ formData, setFormData, onSaveDri
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-3">
-        <h5 className="text-lg font-semibold text-gray-800">Driving License</h5>
+        <h5 className="text-lg font-semibold text-gray-800">Permis de conduire</h5>
         <button
           onClick={onSaveDrivingLicense}
           disabled={savingLicense}
@@ -51,34 +51,34 @@ export default function DrivingLicenseSection({ formData, setFormData, onSaveDri
           {savingLicense ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Saving...
+              Enregistrement...
             </>
           ) : (
             <>
               <Save size={16} />
-              Save Driving License
+              Enregistrer le permis
             </>
           )}
         </button>
       </div>
       <div className="flex justify-end mb-3">
-        <small className="text-sm text-gray-500">Last updated: 2 days ago</small>
+        <small className="text-sm text-gray-500">Derniere mise a jour : il y a 2 jours</small>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">License Number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Numero du permis</label>
             <input
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={formData.licenseNumber}
               onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-              placeholder="E.g. DL-2039401"
+              placeholder="Ex. DL-2039401"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date d'expiration</label>
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -90,7 +90,7 @@ export default function DrivingLicenseSection({ formData, setFormData, onSaveDri
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">License Document Preview</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Apercu du document du permis</label>
           <div className="flex flex-wrap gap-3">
             <div className="relative">
               <label
@@ -107,15 +107,15 @@ export default function DrivingLicenseSection({ formData, setFormData, onSaveDri
                 <div className="relative w-32 h-20">
                   <img
                     src={formData.licenseFrontPreview || licensePlaceholder}
-                    alt="Front of License"
+                    alt="Avant du permis"
                     className="w-full h-full rounded object-cover opacity-85"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-50 rounded flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                     <Upload size={24} className="text-white" />
-                    <div className="text-white text-xs ml-2">REPLACE FRONT</div>
+                    <div className="text-white text-xs ml-2">REMPLACER AVANT</div>
                   </div>
                 </div>
-                <small className="text-xs text-gray-600 mt-1 block">Front of License</small>
+                <small className="text-xs text-gray-600 mt-1 block">Avant du permis</small>
               </label>
             </div>
             <div className="relative">
@@ -134,15 +134,15 @@ export default function DrivingLicenseSection({ formData, setFormData, onSaveDri
                   {formData.licenseBackPreview ? (
                     <img
                       src={formData.licenseBackPreview}
-                      alt="Back of License"
+                      alt="Arriere du permis"
                       className="w-full h-full rounded object-cover opacity-85"
                     />
                   ) : (
                     <>
                       <Upload size={24} className="text-blue-600" />
-                      <small className="text-blue-600 text-xs mt-1">UPLOAD BACK</small>
-                      <small className="text-gray-500 text-xs">PDF, JPG up to 5MB</small>
-                      <small className="text-gray-500 text-xs">Back of License Required</small>
+                      <small className="text-blue-600 text-xs mt-1">TELECHARGER ARRIERE</small>
+                      <small className="text-gray-500 text-xs">PDF, JPG jusqu'a 5 Mo</small>
+                      <small className="text-gray-500 text-xs">Arriere du permis requis</small>
                     </>
                   )}
                 </div>

@@ -4,11 +4,11 @@ import { reviewService } from '../services/reviews';
 import { useAuth } from '../context/useAuth';
 
 const CAR_OPTIONS = [
-  { name: 'Tesla Model 3', category: 'Electric' },
-  { name: 'Porsche Taycan Turbo', category: 'Electric' },
+  { name: 'Tesla Model 3', category: 'Electrique' },
+  { name: 'Porsche Taycan Turbo', category: 'Electrique' },
   { name: 'Audi Q8 e-tron', category: 'SUV' },
   { name: 'Range Rover Sport', category: 'SUV' },
-  { name: 'BMW i7', category: 'Electric' },
+  { name: 'BMW i7', category: 'Electrique' },
 ];
 
 const SORT_OPTIONS = [
@@ -116,7 +116,7 @@ export default function ReviewsPage() {
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-8">
       <div className="flex items-center text-sm text-gray-500 mb-6 gap-2">
-        <span>Dashboard</span>
+                        <span>Tableau de bord</span>
         <ChevronDown className="w-4 h-4 -rotate-90" />
         <span className="text-gray-900 font-medium">Notes & Avis Clients</span>
       </div>
@@ -248,12 +248,12 @@ export default function ReviewsPage() {
             </div>
 
             <div className="flex items-center bg-gray-50 p-1 rounded-xl gap-1">
-              {['All Cars', 'Electric', 'SUV'].map((cat) => (
+              {[{ value: 'All Cars', label: 'Tous les vehicules' }, { value: 'Electric', label: 'Electrique' }, { value: 'SUV', label: 'SUV' }].map((cat) => (
                 <button 
-                  key={cat} onClick={() => setFilter(cat)}
-                  className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${filter === cat ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  key={cat.value} onClick={() => setFilter(cat.value)}
+                  className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${filter === cat.value ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  {cat}
+                  {cat.label}
                 </button>
               ))}
             </div>
@@ -272,7 +272,7 @@ export default function ReviewsPage() {
                         <h4 className="font-bold text-gray-900 text-lg">{review.userName}</h4>
                         {review.isVerified && (
                           <span className="bg-green-100 text-green-700 text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-                            Verified Renter
+                            Locataire verifie
                           </span>
                         )}
                       </div>

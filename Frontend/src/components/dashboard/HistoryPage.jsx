@@ -40,7 +40,7 @@ export default function HistoryPage() {
   };
 
   const formatDate = (date) =>
-    new Date(date).toLocaleDateString("en-US", {
+    new Date(date).toLocaleDateString("fr-FR", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -71,10 +71,10 @@ export default function HistoryPage() {
       {/* HEADER */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800">
-          My Rental History
+          Mon historique de location
         </h1>
         <p className="text-gray-500">
-          View all your past and upcoming reservations
+          Consultez toutes vos reservations passees et a venir
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export default function HistoryPage() {
           <Search size={18} className="text-gray-400" />
           <input
             type="text"
-            placeholder="Search reservations..."
+            placeholder="Rechercher des reservations..."
             className="w-full p-2.5 outline-none bg-transparent text-gray-700 placeholder-gray-400"
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -96,7 +96,7 @@ export default function HistoryPage() {
         <div className="bg-white p-5 rounded-2xl shadow-sm">
           <div className="flex justify-between">
             <span className="text-gray-500 text-sm">
-              Total Reservations
+              Total des reservations
             </span>
             <Car className="text-blue-500" />
           </div>
@@ -108,7 +108,7 @@ export default function HistoryPage() {
         <div className="bg-white p-5 rounded-2xl shadow-sm">
           <div className="flex justify-between">
             <span className="text-gray-500 text-sm">
-              Completed
+              Terminees
             </span>
             <Calendar className="text-green-500" />
           </div>
@@ -126,7 +126,7 @@ export default function HistoryPage() {
         <div className="bg-white p-5 rounded-2xl shadow-sm">
           <div className="flex justify-between">
             <span className="text-gray-500 text-sm">
-              Total Spent
+              Total depense
             </span>
             <DollarSign className="text-yellow-500" />
           </div>
@@ -145,8 +145,8 @@ export default function HistoryPage() {
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
             <Car size={32} className="text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">No reservations found</h3>
-          <p className="text-gray-500">You haven't made any reservations yet.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">Aucune reservation trouvee</h3>
+          <p className="text-gray-500">Vous n'avez encore effectue aucune reservation.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -174,7 +174,7 @@ export default function HistoryPage() {
                       <Car size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">Vehicle #{r.vehicle_id}</h3>
+                      <h3 className="font-semibold text-gray-900">Vehicule #{r.vehicle_id}</h3>
                       <p className="text-sm text-gray-500">Reservation #{r.id}</p>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ export default function HistoryPage() {
 
                 <div className="mb-5">
                   <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${statusClasses}`}>
-                    {r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : "Unknown"}
+                    {r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : "Inconnu"}
                   </span>
                 </div>
 
@@ -190,22 +190,22 @@ export default function HistoryPage() {
                 <div className="flex-1 space-y-4 mb-6">
                   <div className="bg-gray-50 rounded-xl p-3">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-500 text-sm">Start</span>
+                      <span className="text-gray-500 text-sm">Debut</span>
                       <span className="font-medium text-gray-900 text-sm">{formatDate(r.date_debut)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">End</span>
+                      <span className="text-gray-500 text-sm">Fin</span>
                       <span className="font-medium text-gray-900 text-sm">{formatDate(r.date_fin)}</span>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center px-1">
-                    <span className="text-gray-500 text-sm">Duration</span>
-                    <span className="font-medium text-gray-900">{r.nombre_jours} days</span>
+                    <span className="text-gray-500 text-sm">Duree</span>
+                    <span className="font-medium text-gray-900">{r.nombre_jours} jours</span>
                   </div>
 
                   <div className="flex justify-between items-center px-1 pt-4 border-t border-gray-100">
-                    <span className="text-gray-500 text-sm">Total Price</span>
+                    <span className="text-gray-500 text-sm">Prix total</span>
                     <span className="font-bold text-lg text-gray-900">${parseFloat(r.prix).toFixed(2)}</span>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export default function HistoryPage() {
                   to={`/booking/${r.id}`}
                   className="w-full block text-center py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium rounded-xl transition-colors text-sm"
                 >
-                  View Details
+                  Voir les details
                 </Link>
               </div>
             );
@@ -231,7 +231,7 @@ export default function HistoryPage() {
           }
           className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg"
         >
-          <ChevronLeft size={16} /> Prev
+          <ChevronLeft size={16} /> Precedent
         </button>
 
         <span className="text-gray-500">
@@ -246,7 +246,7 @@ export default function HistoryPage() {
           }
           className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg"
         >
-          Next <ChevronRight size={16} />
+          Suivant <ChevronRight size={16} />
         </button>
       </div>
     </div>

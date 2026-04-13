@@ -30,23 +30,23 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
     switch (score) {
       case 0:
       case 1:
-        message = 'Very weak';
+        message = 'Tres faible';
         color = 'text-red-600';
         break;
       case 2:
-        message = 'Weak';
+        message = 'Faible';
         color = 'text-orange-600';
         break;
       case 3:
-        message = 'Fair';
+        message = 'Moyen';
         color = 'text-yellow-600';
         break;
       case 4:
-        message = 'Good';
+        message = 'Bon';
         color = 'text-blue-600';
         break;
       case 5:
-        message = 'Strong';
+        message = 'Fort';
         color = 'text-green-600';
         break;
     }
@@ -65,19 +65,19 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
     const password = formData.newPassword;
 
     if (password && password.length < 8) {
-      errors.push('At least 8 characters');
+      errors.push('Au moins 8 caracteres');
     }
     if (password && !/[A-Z]/.test(password)) {
-      errors.push('One uppercase letter');
+      errors.push('Une lettre majuscule');
     }
     if (password && !/[a-z]/.test(password)) {
-      errors.push('One lowercase letter');
+      errors.push('Une lettre minuscule');
     }
     if (password && !/\d/.test(password)) {
-      errors.push('One number');
+      errors.push('Un chiffre');
     }
     if (password && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.push('One special character');
+      errors.push('Un caractere special');
     }
 
     return errors;
@@ -92,22 +92,22 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <Lock size={20} className="text-gray-600" />
-          <h5 className="text-lg font-semibold text-gray-800">Security & Password</h5>
+          <h5 className="text-lg font-semibold text-gray-800">Securite et mot de passe</h5>
         </div>
-        <small className="text-sm text-gray-500">Last updated: Never</small>
+        <small className="text-sm text-gray-500">Derniere mise a jour : jamais</small>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {/* New Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
           <div className="relative">
             <input
               type={showNewPassword ? 'text' : 'password'}
               className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={formData.newPassword}
               onChange={handleNewPasswordChange}
-              placeholder="Enter new password"
+              placeholder="Entrez un nouveau mot de passe"
             />
             <button
               type="button"
@@ -124,7 +124,7 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
           {formData.newPassword && (
             <div className="mt-1">
               <div className="text-xs text-gray-600">
-                Password strength: {passwordStrength.message}
+                Force du mot de passe : {passwordStrength.message}
               </div>
               <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
                 <div
@@ -144,7 +144,7 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
 
         {/* Confirm Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
           <div className="relative">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
@@ -155,7 +155,7 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
               }`}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              placeholder="Confirm new password"
+              placeholder="Confirmez le nouveau mot de passe"
             />
             <button
               type="button"
@@ -172,7 +172,7 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
           {formData.confirmPassword && formData.newPassword !== formData.confirmPassword && (
             <div className="flex items-center gap-1 mt-1">
               <AlertCircle size={12} className="text-red-500" />
-              <small className="text-xs text-red-500">Passwords do not match</small>
+              <small className="text-xs text-red-500">Les mots de passe ne correspondent pas</small>
             </div>
           )}
         </div>
@@ -181,14 +181,14 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
       {/* Password Requirements */}
       {formData.newPassword && (
         <div className="mb-4 p-3 bg-gray-50 rounded-md">
-          <h6 className="text-sm font-medium text-gray-700 mb-2">Password Requirements:</h6>
+          <h6 className="text-sm font-medium text-gray-700 mb-2">Exigences du mot de passe :</h6>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { text: 'At least 8 characters', valid: formData.newPassword.length >= 8 },
-              { text: 'One uppercase letter', valid: /[A-Z]/.test(formData.newPassword) },
-              { text: 'One lowercase letter', valid: /[a-z]/.test(formData.newPassword) },
-              { text: 'One number', valid: /\d/.test(formData.newPassword) },
-              { text: 'One special character', valid: /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword) },
+              { text: 'Au moins 8 caracteres', valid: formData.newPassword.length >= 8 },
+              { text: 'Une lettre majuscule', valid: /[A-Z]/.test(formData.newPassword) },
+              { text: 'Une lettre minuscule', valid: /[a-z]/.test(formData.newPassword) },
+              { text: 'Un chiffre', valid: /\d/.test(formData.newPassword) },
+              { text: 'Un caractere special', valid: /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword) },
             ].map((requirement, index) => (
               <div key={index} className="flex items-center gap-2 text-xs">
                 <div className={`w-3 h-3 rounded-full ${
@@ -219,12 +219,12 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
           {savingPassword ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Saving...
+              Enregistrement...
             </>
           ) : (
             <>
               <Lock size={16} />
-              Update Password
+              Mettre a jour le mot de passe
             </>
           )}
         </button>
@@ -234,13 +234,13 @@ export default function SecurityPasswordSection({ formData, setFormData, onSaveP
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
         <h6 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
           <AlertCircle size={16} />
-          Security Tips
+          Conseils de securite
         </h6>
         <ul className="text-xs text-blue-700 space-y-1">
-          <li>• Use a unique password that you don't use for other accounts</li>
-          <li>• Avoid using personal information like names or birthdays</li>
-          <li>• Consider using a password manager to generate and store strong passwords</li>
-          <li>• Enable two-factor authentication if available</li>
+          <li>• Utilisez un mot de passe unique different de vos autres comptes</li>
+          <li>• Evitez les informations personnelles comme nom ou date de naissance</li>
+          <li>• Utilisez un gestionnaire pour generer et stocker des mots de passe robustes</li>
+          <li>• Activez l'authentification a deux facteurs si disponible</li>
         </ul>
       </div>
     </div>

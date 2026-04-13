@@ -16,17 +16,17 @@ export default function Sidebar() {
   const menuItems = [
     {
       path: "/dashboard",
-      label: "Dashboard",
+      label: "Tableau de bord",
       icon: LayoutDashboard,
     },
     {
       path: "/ratings",
-      label: "Ratings",
+      label: "Evaluations",
       icon: Star,
     },
     {
       path: "/history",
-      label: "History",
+      label: "Historique",
       icon: History,
     },
     {
@@ -36,7 +36,7 @@ export default function Sidebar() {
     },
     {
       path: "/profile",
-      label: "Profile",
+      label: "Profil",
       icon: User,
     },
   ];
@@ -94,7 +94,7 @@ export default function Sidebar() {
           }`}
         >
           <Car size={18} />
-          Rent a Car
+          Louer une voiture
         </NavLink>
       </div>
 
@@ -105,7 +105,7 @@ export default function Sidebar() {
           className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 text-slate-600 hover:bg-red-50 hover:text-red-600"
         >
           <LogOut size={18} />
-          Logout
+          Deconnexion
         </button>
       </div>
     </aside>

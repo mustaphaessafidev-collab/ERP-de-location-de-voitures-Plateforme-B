@@ -119,11 +119,11 @@ export default function DriveEaseProfile() {
         adresse: formData.adresse || '',
       });
 
-      alert('Personal information updated successfully!');
+      alert('Informations personnelles mises a jour avec succes !');
       refreshAuth();
     } catch (error) {
-      console.error('Failed to update personal information:', error);
-      alert(error.message || 'Failed to update personal information');
+      console.error('Echec de la mise a jour des informations personnelles :', error);
+      alert(error.message || 'Echec de la mise a jour des informations personnelles');
     } finally {
       setSavingPersonal(false);
     }
@@ -138,11 +138,11 @@ export default function DriveEaseProfile() {
         profilePhotoMimeType: formData.profilePhotoMimeType || '',
       });
 
-      alert('Profile photo updated successfully!');
+      alert('Photo de profil mise a jour avec succes !');
       refreshAuth();
     } catch (error) {
-      console.error('Failed to update profile photo:', error);
-      alert(error.message || 'Failed to update profile photo');
+      console.error('Echec de la mise a jour de la photo de profil :', error);
+      alert(error.message || 'Echec de la mise a jour de la photo de profil');
     } finally {
       setSavingPhoto(false);
     }
@@ -162,10 +162,10 @@ export default function DriveEaseProfile() {
         backDocumentMimeType: formData.licenseBackMimeType || '',
       });
 
-      alert('Driving license information saved successfully!');
+      alert('Informations du permis enregistrees avec succes !');
     } catch (error) {
-      console.error('Failed to save driving license information:', error);
-      alert(error.message || 'Failed to save driving license information');
+      console.error('Echec de l\'enregistrement des informations du permis :', error);
+      alert(error.message || 'Echec de l\'enregistrement des informations du permis');
     } finally {
       setSavingLicense(false);
     }
@@ -176,19 +176,19 @@ export default function DriveEaseProfile() {
     try {
       // Validate password fields
       if (!formData.newPassword || !formData.confirmPassword) {
-        alert('Please fill in all password fields');
+        alert('Veuillez remplir tous les champs du mot de passe');
         setSavingPassword(false);
         return;
       }
       
       if (formData.newPassword.length < 8) {
-        alert('New password must be at least 8 characters long');
+        alert('Le nouveau mot de passe doit contenir au moins 8 caracteres');
         setSavingPassword(false);
         return;
       }
       
       if (formData.newPassword !== formData.confirmPassword) {
-        alert('New password and confirm password do not match');
+        alert('Le nouveau mot de passe et sa confirmation ne correspondent pas');
         setSavingPassword(false);
         return;
       }
@@ -197,7 +197,7 @@ export default function DriveEaseProfile() {
         formData.newPassword,
         formData.confirmPassword
       );
-      console.log('Password updated successfully');
+      console.log('Mot de passe mis a jour avec succes');
       
       // Clear password fields after successful update
       setFormData(prev => ({
@@ -206,10 +206,10 @@ export default function DriveEaseProfile() {
         confirmPassword: '',
       }));
       
-      alert('Password updated successfully!');
+      alert('Mot de passe mis a jour avec succes !');
     } catch (error) {
-      console.error('Failed to update password:', error);
-      alert(error.message || 'Failed to update password');
+      console.error('Echec de la mise a jour du mot de passe :', error);
+      alert(error.message || 'Echec de la mise a jour du mot de passe');
     } finally {
       setSavingPassword(false);
     }
@@ -240,7 +240,7 @@ export default function DriveEaseProfile() {
                       {savingPersonal ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Saving...
+                          Enregistrement...
                         </>
                       ) : (
                         <>

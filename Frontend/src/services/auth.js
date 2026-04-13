@@ -40,7 +40,7 @@ export const authService = {
         if (error.response.data.errors && Array.isArray(error.response.data.errors)) {
            throw new Error(error.response.data.errors.join('\n'));
         }
-        throw new Error(error.response.data.message || "Registration failed");
+        throw new Error(error.response.data.message || "Echec de l'inscription");
       }
       throw error;
     }
@@ -60,7 +60,7 @@ export const authService = {
       return response.data;
     } catch (error) {
        if (error.response && error.response.data) {
-        throw new Error(error.response.data.message || "Login failed");
+        throw new Error(error.response.data.message || "Echec de la connexion");
       }
       throw error;
     }
@@ -80,7 +80,7 @@ export const authService = {
       return response.data;
     } catch (error) {
        if (error.response && error.response.data) {
-        throw new Error(error.response.data.message || "Validation failed");
+        throw new Error(error.response.data.message || "Echec de la validation");
       }
       throw error;
     }
@@ -115,7 +115,7 @@ export const authService = {
         const details = Array.isArray(error.response.data.errors)
           ? error.response.data.errors.join("\n")
           : error.response.data.message;
-        throw new Error(details || "Personal information update failed");
+        throw new Error(details || "Echec de la mise a jour des informations personnelles");
       }
       throw error;
     }
@@ -133,7 +133,7 @@ export const authService = {
         const details = Array.isArray(error.response.data.errors)
           ? error.response.data.errors.join("\n")
           : error.response.data.message;
-        throw new Error(details || "Profile photo update failed");
+        throw new Error(details || "Echec de la mise a jour de la photo de profil");
       }
       throw error;
     }
@@ -154,7 +154,7 @@ export const authService = {
         const details = Array.isArray(error.response.data.errors)
           ? error.response.data.errors.join("\n")
           : error.response.data.message;
-        throw new Error(details || "Password update failed");
+        throw new Error(details || "Echec de la mise a jour du mot de passe");
       }
       throw error;
     }
@@ -169,7 +169,7 @@ export const authService = {
         const details = Array.isArray(error.response.data.errors)
           ? error.response.data.errors.join("\n")
           : error.response.data.message;
-        throw new Error(details || "Driving license update failed");
+        throw new Error(details || "Echec de la mise a jour du permis de conduire");
       }
       throw error;
     }

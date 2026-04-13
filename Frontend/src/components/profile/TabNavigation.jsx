@@ -3,8 +3,8 @@ import { User, FileText, Settings } from 'lucide-react';
 
 export default function TabNavigation({ activeTab, setActiveTab }) {
   const tabs = [
-    { id: 'personal', label: 'Personal Info', icon: User },
-    { id: 'license', label: 'Driving License', icon: FileText },
+    { id: 'personal', label: 'Infos personnelles', icon: User },
+    { id: 'license', label: 'Permis de conduire', icon: FileText },
     { id: 'preferences', label: 'Preferences', icon: Settings },
   ];
 

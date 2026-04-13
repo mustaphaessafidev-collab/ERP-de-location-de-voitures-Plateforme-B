@@ -7,25 +7,25 @@ export default function RatingsPage() {
       id: 1,
       vehicleName: "Tesla Model 3",
       rating: 5,
-      review: "Excellent car! Very smooth ride and great performance.",
+      review: "Excellente voiture ! Conduite tres fluide et excellente performance.",
       date: "2024-04-10",
-      reviewer: "John Doe",
+      reviewer: "Client 1",
     },
     {
       id: 2,
       vehicleName: "BMW 5 Series",
       rating: 4,
-      review: "Good quality car, but a bit pricey.",
+      review: "Voiture de bonne qualite, mais un peu chere.",
       date: "2024-04-08",
-      reviewer: "Jane Smith",
+      reviewer: "Client 2",
     },
     {
       id: 3,
       vehicleName: "Audi A4",
       rating: 5,
-      review: "Perfect for business trips. Very comfortable.",
+      review: "Parfaite pour les voyages d'affaires. Tres confortable.",
       date: "2024-04-05",
-      reviewer: "Mike Johnson",
+      reviewer: "Client 3",
     },
   ]);
 
@@ -51,9 +51,9 @@ export default function RatingsPage() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Your Ratings</h1>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Vos evaluations</h1>
         <p className="text-slate-600">
-          View your rental history and ratings from customers
+          Consultez l'historique de location et les evaluations clients
         </p>
       </div>
 
@@ -64,14 +64,14 @@ export default function RatingsPage() {
             <span className="text-3xl font-bold text-amber-600">
               {averageRating}
             </span>
-            <p className="text-xs text-amber-700">out of 5</p>
+            <p className="text-xs text-amber-700">sur 5</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
               {renderStars(Math.round(averageRating))}
             </div>
             <p className="text-slate-600">
-              Based on {ratings.length} reviews
+              Base sur {ratings.length} avis
             </p>
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function RatingsPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
-                    {new Date(rating.date).toLocaleDateString("en-US", {
+                    {new Date(rating.date).toLocaleDateString("fr-FR", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
@@ -119,10 +119,10 @@ export default function RatingsPage() {
         <div className="text-center py-12">
           <Star className="text-slate-300 mx-auto mb-4" size={48} />
           <h3 className="text-lg font-semibold text-slate-900 mb-2">
-            No ratings yet
+            Aucune evaluation pour le moment
           </h3>
           <p className="text-slate-600">
-            Complete a rental to receive your first rating
+            Terminez une location pour recevoir votre premiere evaluation
           </p>
         </div>
       )}

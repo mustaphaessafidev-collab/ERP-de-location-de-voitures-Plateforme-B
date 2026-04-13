@@ -83,14 +83,14 @@ const fetchNotifications = async () => {
     const diffMs = now - created;
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins} mins ago`;
+    if (diffMins < 1) return "A l'instant";
+    if (diffMins < 60) return `Il y a ${diffMins} min`;
 
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `Il y a ${diffHours} heure${diffHours > 1 ? "s" : ""}`;
 
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return `Il y a ${diffDays} jour${diffDays > 1 ? "s" : ""}`;
   };
 
   const filteredNotifications = useMemo(() => {
@@ -137,7 +137,7 @@ const fetchNotifications = async () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Delete this notification?");
+    const confirmDelete = window.confirm("Supprimer cette notification ?");
     if (!confirmDelete) return;
 
     try {
@@ -145,7 +145,7 @@ const fetchNotifications = async () => {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       setFavorites((prev) => prev.filter((favId) => favId !== id));
     } catch (error) {
-      console.error("Delete failed:", error);
+      console.error("Echec de suppression :", error);
     }
   };
 
@@ -158,21 +158,21 @@ const fetchNotifications = async () => {
   };
 
   if (!userId) {
-    return <p className="p-6">User not found. Please login again.</p>;
+    return <p className="p-6">Utilisateur introuvable. Veuillez vous reconnecter.</p>;
   }
 
   return (
     <div className="min-h-screen bg-slate-50 px-5 py-8">
       <div className="mx-auto max-w-6xl">
-        <p className="mb-2 text-sm text-slate-400">Home &gt; Notifications</p>
+        <p className="mb-2 text-sm text-slate-400">Accueil &gt; Notifications</p>
 
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-              Notifications & Alerts
+              Notifications et alertes
             </h1>
             <p className="mt-2 text-slate-500">
-              Stay updated with your bookings, car maintenance, and exclusive rental offers.
+              Suivez vos reservations, l'entretien des vehicules et les offres exclusives.
             </p>
           </div>
 
@@ -180,7 +180,7 @@ const fetchNotifications = async () => {
             onClick={handleMarkAllRead}
             className="rounded-2xl bg-blue-100 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-200"
           >
-            Mark all as read
+            Tout marquer comme lu
           </button>
         </div>
 
@@ -193,7 +193,7 @@ const fetchNotifications = async () => {
                 : "text-slate-500"
             }`}
           >
-            All Notifications{" "}
+            Toutes{" "}
             <span className="ml-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs">
               {notifications.length}
             </span>
@@ -207,7 +207,7 @@ const fetchNotifications = async () => {
                 : "text-slate-500"
             }`}
           >
-            Unread{" "}
+            Non lues{" "}
             <span className="ml-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs">
               {notifications.filter((n) => !n.isRead).length}
             </span>
@@ -221,7 +221,7 @@ const fetchNotifications = async () => {
                 : "text-slate-500"
             }`}
           >
-            Bookings
+            Reservations
           </button>
 
           <button
@@ -232,22 +232,22 @@ const fetchNotifications = async () => {
                 : "text-slate-500"
             }`}
           >
-            Promotions
+            Offres
           </button>
         </div>
 
         {loading ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-slate-500">Loading notifications...</p>
+            <p className="text-slate-500">Chargement des notifications...</p>
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-slate-500">No notifications found.</p>
+            <p className="text-slate-500">Aucune notification trouvee.</p>
           </div>
         ) : (
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-              Today
+              Aujourd'hui
             </p>
 
             <div className="space-y-4">
@@ -292,24 +292,24 @@ const fetchNotifications = async () => {
                             onClick={() => handleMarkOneRead(item.id)}
                             className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
                           >
-                            Mark as read
+                            Marquer comme lu
                           </button>
                         )}
 
                         {(item.type === "RESERVATION" || item.type === "APPROVED") && (
                           <>
                             <button className="text-sm font-semibold text-blue-600 hover:underline">
-                              View Details
+                              Voir les details
                             </button>
                             <button className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                              Add to Calendar
+                              Ajouter au calendrier
                             </button>
                           </>
                         )}
 
                         {item.type === "PROMO" && (
                           <button className="text-sm font-semibold text-blue-600 hover:underline">
-                            Claim Offer
+                            Voir l'offre
                           </button>
                         )}
                       </div>
@@ -323,7 +323,7 @@ const fetchNotifications = async () => {
                             ? "text-yellow-400"
                             : "text-slate-300 hover:text-yellow-400"
                         }`}
-                        title="Favorite"
+                        title="Favori"
                       >
                         ★
                       </button>
@@ -331,7 +331,7 @@ const fetchNotifications = async () => {
                       <button
                         onClick={() => handleDelete(item.id)}
                         className="text-lg text-red-400 transition hover:text-red-600"
-                        title="Delete"
+                        title="Supprimer"
                       >
                         ✕
                       </button>
