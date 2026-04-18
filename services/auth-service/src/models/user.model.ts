@@ -30,6 +30,6 @@ export interface CreateUserInput {
 
 /** Strip password from a user object */
 export function toUserResponse(user: User): UserResponse {
-  const { password: _, ...rest } = user;
-  return rest;
+  const { password: _, ...resp } = user;
+  return resp;
 }
