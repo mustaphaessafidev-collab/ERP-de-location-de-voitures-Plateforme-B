@@ -311,7 +311,7 @@ padding:20px;
 
 `}</style>
 
-      {/* SIDEBAR */}
+      
 
       <Sidebar />
 
@@ -327,6 +327,7 @@ padding:20px;
             <Search size={20} />
             <input placeholder="Search bookings, invoices..." />
           </div>
+
 
           
  
