@@ -13,7 +13,7 @@ export default function ValidateEmailPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   // If user got routed here without state (e.g. they refreshed), they won't see their email
-  const email = location.state?.email || 'your email';
+  const email = location.state?.email || 'votre e-mail';
 
   // Automatically validate if OTP is passed via query string (e.g., from an email link)
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function ValidateEmailPage() {
 
   const submitValidation = async (otpCode) => {
     if (!otpCode || otpCode.length < 6) {
-      setError('Please enter a valid 6-digit code');
+      setError('Veuillez saisir un code valide a 6 chiffres');
       return;
     }
 
@@ -45,7 +45,7 @@ export default function ValidateEmailPage() {
       refreshAuth();
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Verification failed. Please check your code and try again.');
+      setError(err.message || 'La verification a echoue. Verifiez votre code puis reessayez.');
     } finally {
       setIsLoading(false);
     }
@@ -58,10 +58,10 @@ export default function ValidateEmailPage() {
           <MailCheck size={48} />
         </div>
         <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
-          Verify your email
+          Verifiez votre e-mail
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          We've sent a 6-digit verification code to
+          Nous avons envoye un code de verification a 6 chiffres a
           <br />
           <span className="font-medium text-gray-900">{email}</span>
         </p>
@@ -82,7 +82,7 @@ export default function ValidateEmailPage() {
 
             <div>
               <label htmlFor="otp" className="block text-sm font-medium text-gray-700 text-center mb-2">
-                Verification Code
+                Code de verification
               </label>
               <div className="mt-1">
                 <input
@@ -98,7 +98,7 @@ export default function ValidateEmailPage() {
                 />
               </div>
               <p className="mt-2 text-xs text-center text-gray-500">
-                Enter the 6-digit code sent to your email
+                Saisissez le code a 6 chiffres recu par e-mail
               </p>
             </div>
 
@@ -116,17 +116,17 @@ export default function ValidateEmailPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Verifying...
+                    Verification...
                   </span>
                 ) : (
-                  'Verify Email'
+                  "Verifier l'e-mail"
                 )}
               </button>
             </div>
             
              <div className="mt-4 text-center">
               <Link to="/login" className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
-                Back to Login
+                Retour a la connexion
               </Link>
             </div>
           </form>

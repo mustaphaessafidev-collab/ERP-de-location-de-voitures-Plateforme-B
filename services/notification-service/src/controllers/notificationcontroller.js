@@ -121,3 +121,24 @@ export const deleteNotification = async (req, res) => {
     });
   }
 };
+
+export const deleteAllNotifications = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    await prisma.notification.deleteMany({
+      where: { userId: String(userId) },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "All notifications deleted successfully",
+    });
+  } catch (error) {
+    console.error("deleteAllNotifications error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while deleting all notifications",
+    });
+  }
+};

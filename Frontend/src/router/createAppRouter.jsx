@@ -1,10 +1,11 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { mapRoutesToRouter } from "../helpers/routeHelpers";
 import AppLayout from "../layouts/AppLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 import { guestRouteLoader, privateRouteLoader } from "./authLoaders";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import ValidateEmailPage from "../pages/ValidateEmailPage";
+import LoginPage from "../components/auth/LoginPage";
+import RegisterPage from "../components/auth/RegisterPage";
+import ValidateEmailPage from "../components/auth/ValidateEmailPage";
 import VehicleCatalogPage from "../pages/VehicleCatalogPage";
 import VehicleDetailsPage from "../pages/VehicleDetailsPage";
 import ReservationPage from "../components/reservation/Reservation";
@@ -12,8 +13,18 @@ import PlaceholderPage from "../components/pages/PlaceholderPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import HomePage from "../pages/HomePage";
-import ReservationSuccessPage from "../pages/ReservationSuccessPage";
 import Dashboard from "../components/dashboard/Dashboard";
+import HistoryPage from "../components/dashboard/HistoryPage";
+import DriveEaseProfile from "../components/profile/DriveEaseProfile";
+import RatingsPage from "../pages/RatingsPage";
+import RentCarPage from "../pages/RentCarPage";
+import ReservationSuccessPage from "../pages/ReservationSuccessPage";
+<<<<<<< HEAD
+import Dashboard from "../components/dashboard/Dashboard";
+=======
+import ReviewsPage from "../pages/ReviewsPage";
+
+>>>>>>> 6657c7b18bdceefee063bf7a7c9bb21ea05e39fb
 
 
 const guestAuthRoutes = mapRoutesToRouter([
@@ -32,6 +43,7 @@ const publicRoutes = mapRoutesToRouter([
   { path: "/VehicleCatalogPage", element: <VehicleCatalogPage /> },
   { path: "/VehicleDetail/:id", element: <VehicleDetailsPage /> },
   { path: "/notifications", element: <NotificationsPage /> },
+<<<<<<< HEAD
   {
     path: "/dashboard",
     element: (
@@ -39,59 +51,60 @@ const publicRoutes = mapRoutesToRouter([
     ),
   },
 
+=======
+>>>>>>> 6657c7b18bdceefee063bf7a7c9bb21ea05e39fb
 ]);
 
-const privateRoutes = mapRoutesToRouter([
+// Dashboard routes (with sidebar) - Full paths since no parent
+const dashboardRoutes = mapRoutesToRouter([
   {
     path: "/dashboard",
+<<<<<<< HEAD
     element: (
       <Dashboard/>
     ),
+=======
+    element: <Dashboard />,
+>>>>>>> 6657c7b18bdceefee063bf7a7c9bb21ea05e39fb
   },
   {
-    path: "/dashboard/stats",
-    element: (
-      <PlaceholderPage
-        title="Statistiques"
-        message="Cette page affichera bientôt vos indicateurs et graphiques de performance."
-      />
-    ),
+    path: "/history",
+    element: <HistoryPage />,
   },
   {
-    path: "/bookings",
-    element: (
-      <PlaceholderPage
-        title="Réservations"
-        message="La liste et le suivi de vos réservations seront disponibles ici prochainement."
-      />
-    ),
+    path: "/ratings",
+    element: <RatingsPage />,
   },
   {
     path: "/profile",
-    element: (
-      <PlaceholderPage
-        title="Profil"
-        message="Vous pourrez bientôt modifier vos informations personnelles sur cette page."
-      />
-    ),
+    element: <DriveEaseProfile />,
   },
   {
-    path: "/settings",
-    element: (
-      <PlaceholderPage
-        title="Paramètres"
-        message="Les préférences du compte et les options d'application seront ajoutées ici."
-      />
-    ),
+    path: "/rent-car",
+    element: <RentCarPage />,
   },
-
-  
-  
-  { path: "/test-success", element: <PlaceholderPage title="Test success" message="Test success message" /> },
-  { path: "/reservation", element: <ReservationPage /> },
-  { path: "/booking-review", element: <ReservationPage /> },
-  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },          
 ]);
+
+// Non-dashboard private routes (without sidebar)
+const otherPrivateRoutes = mapRoutesToRouter([
+  { path: "/booking-review", element: <ReservationPage /> },
+  { path: "/reviews", element: <ReviewsPage /> },
+  { path: "/test-success", element: <PlaceholderPage title="Test réussi" message="Message de test réussi" /> },
+  { path: "/reservation", element: <ReservationPage /> },
+  { path: "/reservation-reussie", element: <ReservationSuccessPage /> },
+]);
+
+// Dashboard group (with sidebar layout) - NO PATH needed
+const dashboardGroup = {
+  element: <DashboardLayout />,
+  children: dashboardRoutes,
+};
+
+// All private routes combined
+const privateRoutes = [
+  dashboardGroup,
+  ...otherPrivateRoutes,
+];
 
 export function createAppRouter() {
   return createBrowserRouter([

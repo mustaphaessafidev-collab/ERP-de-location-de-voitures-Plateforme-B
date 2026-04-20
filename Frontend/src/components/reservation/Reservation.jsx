@@ -1,14 +1,17 @@
-import { Clock3, MapPin, Phone, Route } from "lucide-react";
 import { jsPDF } from "jspdf";
-import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fetchReservationPlanning } from "../../services/reservation.js";
+import { FaClock, FaMapMarkerAlt, FaPhone, FaRoad, FaCar } from "react-icons/fa";
 import { useNotifications } from "../../context/NotificationContext";
+import { createReservation } from "../../services/reservation";
 
+
+// ===== HELPER FUNCTIONS =====
 function formatDate(dateStr, timeStr) {
   if (!dateStr) return "-";
   const date = new Date(`${dateStr}T${timeStr || "10:00"}`);
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("fr-FR", {
     month: "short",
     day: "2-digit",
     year: "numeric",
@@ -21,25 +24,51 @@ function formatMoney(value) {
   return `${Number(value || 0).toFixed(2)} DH`;
 }
 
-function downloadPdf({ filename, title, lines }) {
-  const doc = new jsPDF();
-  let y = 20;
+// Calculate rental progress based on current time
+function calculateProgress(pickUpDate, returnDate) {
+  const now = new Date();
+  const pickUp = new Date(`${pickUpDate}T10:00`);
+  const returnDt = new Date(`${returnDate}T18:00`);
+  
+  const totalDuration = returnDt.getTime() - pickUp.getTime();
+  const elapsedTime = now.getTime() - pickUp.getTime();
+  const progressPercent = Math.max(0, Math.min(100, (elapsedTime / totalDuration) * 100));
+  
+  let currentStep = "reserved";
+  if (now < pickUp) {
+    currentStep = "reserved";
+  } else if (now >= pickUp && now < returnDt) {
+    currentStep = "in-progress";
+  } else {
+    currentStep = "completed";
+  }
+  
+  return { progressPercent, currentStep };
+}
 
-  doc.setFontSize(16);
-  doc.text(title, 14, y);
-  y += 10;
-
-  doc.setFontSize(11);
-  lines.forEach((line) => {
-    doc.text(String(line), 14, y);
-    y += 7;
-    if (y > 275) {
-      doc.addPage();
-      y = 20;
-    }
-  });
-
-  doc.save(filename);
+// Helper to get step styling
+function getStepStyles(currentStep, stepName) {
+  const isActive = (stepName === "reserved" && currentStep !== "in-progress" && currentStep !== "completed") ||
+                   (stepName === "pickup" && (currentStep === "in-progress" || currentStep === "completed")) ||
+                   (stepName === "return" && currentStep === "completed");
+  
+  const isCompleted =
+    (stepName === "reserved") ||
+    (stepName === "pickup" && (currentStep === "in-progress" || currentStep === "completed")) ||
+    (stepName === "return" && currentStep === "completed");
+  
+  return {
+    container: `rounded-lg border-2 p-3 transition-all ${
+      isCompleted ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"
+    }`,
+    icon: `flex h-9 w-9 items-center justify-center rounded-full border-2 mx-auto mb-2 text-sm font-bold ${
+      isCompleted ? "border-blue-500 bg-blue-100 text-blue-600" : "border-slate-300 bg-white text-slate-400"
+    }`,
+    text: `text-xs font-semibold text-center ${
+      isActive ? "text-blue-700" : "text-slate-700"
+    }`,
+    date: "text-[11px] text-slate-500 text-center mt-1"
+  };
 }
 
 async function imageUrlToDataUrl(imageUrl) {
@@ -53,64 +82,24 @@ async function imageUrlToDataUrl(imageUrl) {
   });
 }
 
-/** Aligné sur `GET /api/reservations/planning` (vert = disponible, rouge = indisponible). */
-const FALLBACK_PLANNING = {
-  monthLabel: "Mai 2026",
-  planningDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  planningDates: [29, 30, 1, 2, 3, 4, 5],
-  rows: [
-    {
-      label: "Haute saison : 120€/jour",
-      kind: "available",
-      segments: [
-        { start: 0, span: 5 },
-        { start: 5, span: 1, note: "Fermé" },
-        { start: 6, span: 1, note: "Fermé" },
-      ],
-    },
-    {
-      label: "Non disponible",
-      kind: "unavailable",
-      segments: [{ start: 0, span: 7 }],
-    },
-    {
-      label: "Haute saison : 120€/jour",
-      kind: "available",
-      segments: [
-        { start: 0, span: 5 },
-        { start: 5, span: 1, note: "Fermé" },
-        { start: 6, span: 1, note: "Fermé" },
-      ],
-    },
-  ],
-};
-
-const ROW_BAR_CLASS = {
-  available: "bg-emerald-500 text-white",
-  unavailable: "bg-rose-500 text-white",
-};
-
-const NOTE_CLOSED_CLASS = "bg-rose-200 text-rose-800";
-
 export default function Reservation() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { addNotification } = useNotifications();
   const bookingData = state?.bookingData ?? state;
-  const [reservationStatus, setReservationStatus] = useState("Confirmed");
-  const [showPickUpPlanning, setShowPickUpPlanning] = useState(false);
-  const [selectedPlanningSlots, setSelectedPlanningSlots] = useState([]);
-  const [planningPayload, setPlanningPayload] = useState(null);
-  const [planningError, setPlanningError] = useState(null);
+  
+  // State management - minimal
+  const [reservationStatus, setReservationStatus] = useState("Confirmee");
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Extract booking data with defaults
   const reservationId = bookingData?.reservationId || "#782910";
   const days = bookingData?.numberDays ?? 5;
   const basePrice = bookingData?.basePrice ?? 425;
   const insurancePrice = bookingData?.insurancePrice ?? 75;
   const serviceFee = bookingData?.serviceFee ?? 55;
   const taxes = bookingData?.taxes ?? 0;
-  const totalPrice =
-    bookingData?.totalPrice ?? basePrice + insurancePrice + serviceFee + taxes;
+  const totalPrice = bookingData?.totalPrice ?? basePrice + insurancePrice + serviceFee + taxes;
   const vehicleName = bookingData?.vehicleName || "Tesla Model 3 - 2023";
   const vehicleImage =
     bookingData?.vehicleImage ||
@@ -119,42 +108,20 @@ export default function Reservation() {
   const city = bookingData?.city || "Terminal 1, level 0, Rental Car Center";
   const pickUpFormatted = formatDate(bookingData?.pickUpDate, bookingData?.pickUpTime);
   const returnFormatted = formatDate(bookingData?.returnDate, bookingData?.returnTime);
-  const isCancelled = reservationStatus === "Cancelled";
+  const isCancelled = reservationStatus === "Annulee";
 
-  const planningDays = planningPayload?.planningDays ?? FALLBACK_PLANNING.planningDays;
-  const planningDates = planningPayload?.planningDates ?? FALLBACK_PLANNING.planningDates;
-  const monthLabel = planningPayload?.monthLabel ?? FALLBACK_PLANNING.monthLabel;
-  const planningRows = useMemo(
-    () => planningPayload?.rows ?? FALLBACK_PLANNING.rows,
-    [planningPayload]
-  );
+  // Calculate progress
+  const progressData = useMemo(() => {
+    if (!bookingData?.pickUpDate || !bookingData?.returnDate) {
+      return { progressPercent: 0, currentStep: "reserved" };
+    }
+    return calculateProgress(bookingData.pickUpDate, bookingData.returnDate);
+  }, [bookingData?.pickUpDate, bookingData?.returnDate]);
 
-  useEffect(() => {
-    if (!showPickUpPlanning) return;
-    let cancelled = false;
-    setPlanningError(null);
-    fetchReservationPlanning()
-      .then((data) => {
-        if (!cancelled) setPlanningPayload(data);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setPlanningPayload(null);
-          setPlanningError("Impossible de charger le planning (données locales affichées).");
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [showPickUpPlanning]);
+  // Handlers using useCallback
+  const handlePrint = useCallback(() => window.print(), []);
 
-  const selectedSlotsLabel = selectedPlanningSlots
-    .map((slot) => `${planningDays[slot.day]} ${planningDates[slot.day]}`)
-    .join(", ");
-
-  const handlePrint = () => window.print();
-
-  const handleModify = () => {
+  const handleModify = useCallback(() => {
     addNotification(
       "info",
       "Modification en cours ✏️",
@@ -163,26 +130,26 @@ export default function Reservation() {
     );
     if (bookingData?.vehicleId) {
       navigate(`/VehicleDetail/${bookingData.vehicleId}`);
-      return;
+    } else {
+      navigate("/VehicleCatalogPage");
     }
-    navigate("/VehicleCatalogPage");
-  };
+  }, [reservationId, vehicleName, bookingData?.vehicleId, navigate, addNotification]);
 
-  const handleOpenMap = (query) => {
+  const handleOpenMap = useCallback((query) => {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     window.open(url, "_blank", "noopener,noreferrer");
-  };
+  }, []);
 
-  const handleDownloadReceipt = async () => {
+  const handleDownloadReceipt = useCallback(async () => {
     const doc = new jsPDF();
     const yStart = 18;
 
     doc.setFontSize(18);
-    doc.text("Reservation Invoice", 14, yStart);
+    doc.text("Facture de reservation", 14, yStart);
     doc.setFontSize(11);
-    doc.text(`Reservation No: ${reservationId}`, 14, yStart + 8);
-    doc.text(`Status: ${reservationStatus}`, 14, yStart + 14);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, yStart + 20);
+    doc.text(`Reservation Ndeg: ${reservationId}`, 14, yStart + 8);
+    doc.text(`Statut: ${reservationStatus}`, 14, yStart + 14);
+    doc.text(`Generee le: ${new Date().toLocaleString("fr-FR")}`, 14, yStart + 20);
 
     let y = yStart + 30;
 
@@ -194,17 +161,17 @@ export default function Reservation() {
       doc.rect(14, y, 68, 40);
       doc.setFontSize(10);
       doc.setTextColor(120, 120, 120);
-      doc.text("Vehicle photo unavailable", 20, y + 22);
+      doc.text("Photo du vehicule indisponible", 20, y + 22);
       doc.setTextColor(0, 0, 0);
     }
 
     doc.setFontSize(12);
-    doc.text("Booking details", 90, y + 6);
+    doc.text("Details de reservation", 90, y + 6);
     doc.setFontSize(11);
-    doc.text(`Vehicle: ${vehicleName}`, 90, y + 14);
-    doc.text(`Agency: ${agency}`, 90, y + 21);
-    doc.text(`Pick-up: ${pickUpFormatted}`, 90, y + 28);
-    doc.text(`Drop-off: ${returnFormatted}`, 90, y + 35);
+    doc.text(`Vehicule: ${vehicleName}`, 90, y + 14);
+    doc.text(`Agence: ${agency}`, 90, y + 21);
+    doc.text(`Retrait: ${pickUpFormatted}`, 90, y + 28);
+    doc.text(`Retour: ${returnFormatted}`, 90, y + 35);
 
     y += 52;
     doc.setDrawColor(220, 220, 220);
@@ -212,91 +179,130 @@ export default function Reservation() {
     y += 8;
 
     doc.setFontSize(12);
-    doc.text("Pricing", 14, y);
+    doc.text("Tarification", 14, y);
     y += 8;
     doc.setFontSize(11);
-    doc.text(`Rental Rate (${days} days): ${formatMoney(basePrice)}`, 14, y);
+    doc.text(`Tarif location (${days} jours): ${formatMoney(basePrice)}`, 14, y);
     y += 7;
-    doc.text(`Insurance: ${formatMoney(insurancePrice)}`, 14, y);
+    doc.text(`Assurance: ${formatMoney(insurancePrice)}`, 14, y);
     y += 7;
-    doc.text(`Taxes & Fees: ${formatMoney(serviceFee)}`, 14, y);
+    doc.text(`Taxes et frais: ${formatMoney(serviceFee)}`, 14, y);
     y += 9;
     doc.setFontSize(13);
-    doc.text(`Total Amount: ${formatMoney(totalPrice)}`, 14, y);
+    doc.text(`Montant total: ${formatMoney(totalPrice)}`, 14, y);
 
     doc.save(`invoice-${reservationId.replace("#", "")}.pdf`);
-  };
+  }, [reservationId, reservationStatus, vehicleImage, vehicleName, agency, pickUpFormatted, returnFormatted, days, basePrice, insurancePrice, serviceFee, totalPrice]);
 
-  const togglePlanningSlot = (rowIndex, dayIndex) => {
-    const row = planningRows[rowIndex];
-    if (!row || row.kind !== "available") return;
+  const handleConfirm = useCallback(async () => {
+    console.log("[FRONTEND] === Reservation Confirm ===");
+    console.log("[FRONTEND] Booking Data:", bookingData);
+    console.log("[FRONTEND] Pick-up:", bookingData?.pickUpDate);
+    console.log("[FRONTEND] Return:", bookingData?.returnDate);
 
-    setSelectedPlanningSlots((prev) => {
-      const exists = prev.some((slot) => slot.row === rowIndex && slot.day === dayIndex);
-      if (exists) {
-        return prev.filter((slot) => !(slot.row === rowIndex && slot.day === dayIndex));
+    setIsLoading(true);
+    try {
+      // Get user ID from localStorage
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id;
+
+      if (!userId) {
+        throw new Error(
+          "Utilisateur non authentifie. Veuillez vous reconnecter."
+        );
       }
-      return [...prev, { row: rowIndex, day: dayIndex }];
-    });
-  };
 
-  const handleConfirm = () => {
-    setReservationStatus("Confirmed");
-    setShowPickUpPlanning(true);
-    addNotification(
-      "success",
-      "Réservation confirmée ✅",
-      `Réservation ${reservationId} pour ${vehicleName} confirmée avec succès.`,
-      reservationId
-    );
-  };
+      // Prepare reservation payload (field names match backend database schema)
+      const reservationPayload = {
+        client_id: userId,
+        vehicle_id: bookingData?.vehicleId,
+        date_debut: bookingData?.pickUpDate,
+        date_fin: bookingData?.returnDate,
+        prix: bookingData?.totalPrice,
+        nombre_jours: bookingData?.numberDays,
+      };
 
-  const handleReserveFromPlanning = () => {
-    setReservationStatus("Confirmed");
-    addNotification(
-      "success",
-      "Créneau réservé 📅",
-      `Créneaux sélectionnés pour ${vehicleName} : ${selectedSlotsLabel || "non spécifiés"}.`,
-      reservationId
-    );
-    navigate("/reservation-reussie", {
-      replace: true,
-      state: {
-        reservationId,
-        vehicleName,
-        selectedSlots: selectedSlotsLabel || null,
-      },
-    });
-  };
+      console.log("[FRONTEND] User ID:", userId);
+      console.log("[FRONTEND] Reservation Payload:", reservationPayload);
 
-  const handleCancel = () => {
-    setReservationStatus("Cancelled");
+      // ✅ Call reservation service (now properly routed through gateway)
+      const reservation = await createReservation(reservationPayload);
+
+      console.log("[FRONTEND] ✅ Reservation created:", reservation);
+
+      setReservationStatus("Confirmee");
+      addNotification(
+        "success",
+        "Réservation confirmée ",
+        `Votre réservation a été créée avec succès.`,
+        `RES-${reservation.id}`
+      );
+
+      // ✅ Create notification
+      try {
+        console.log("[FRONTEND] Creating notification for userId:", String(userId));
+        await axios.post("http://localhost:4004/api/notifications", {
+          userId: String(userId),
+          type: "RESERVATION",
+          title: "Reservation creee",
+          message: "Votre reservation a ete creee avec succes.",
+          referenceId: String(reservation.id),
+        });
+        console.log("[FRONTEND] ✅ Notification created");
+        navigate("/dashboard");
+      } catch (notificationError) {
+        console.warn(
+          "[FRONTEND] ⚠️ Notification service unavailable:",
+          notificationError.message
+        );
+        // Don't fail the reservation if notification fails
+      }
+    } catch (error) {
+      console.error("[FRONTEND] ❌ Error creating reservation:", error);
+      console.error("Error details:", error.response?.data || error.message);
+
+      addNotification(
+        "error",
+        "Erreur lors de la création ❌",
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Une erreur s'est produite.",
+        reservationId
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [bookingData, reservationId, vehicleName, addNotification]);
+
+  const handleCancel = useCallback(() => {
+    setReservationStatus("Annulee");
     addNotification(
       "error",
       "Réservation annulée ❌",
       `La réservation ${reservationId} pour ${vehicleName} a été annulée.`,
       reservationId
     );
-  };
+  }, [reservationId, vehicleName, addNotification]);
 
   return (
     <section className="min-h-[calc(100vh-4rem)] bg-slate-100 px-4 py-6 md:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-5">
           <div className="text-[11px] text-slate-500">
-            Dashboard / My Bookings /{" "}
-            <span className="font-medium text-slate-700">Reservation details</span>
+            Tableau de bord / Mes reservations /{" "}
+            <span className="font-medium text-slate-700">Details de reservation</span>
           </div>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-[34px] font-bold leading-none text-slate-800">
+                <h1 className="text-3xl font-bold text-slate-800">
                   Reservation {reservationId}
                 </h1>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${
                     isCancelled
-                      ? "bg-rose-100 text-rose-700"
+                      ? "bg-red-100 text-red-700"
                       : "bg-emerald-100 text-emerald-700"
                   }`}
                 >
@@ -304,156 +310,93 @@ export default function Reservation() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-500">
-                Booked on {new Date().toLocaleDateString()} - {days} days duration
+                Reservee le {new Date().toLocaleDateString("fr-FR")} • {days} jours
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handlePrint}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700"
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                Print Detail
+                Imprimer
               </button>
               <button
                 onClick={handleModify}
-                className="rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold text-white"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
               >
-                Modify Booking
+                Modifier
               </button>
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Rental Progress
+            <p className="mb-5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Chronologie de location
             </p>
             
-            {/* LIGNE DU TEMPS (En haut) */}
-            <div className="relative grid grid-cols-3 gap-3 text-sm">
-              <div className="absolute left-[12%] right-[12%] top-4 h-[2px] bg-slate-200" />
-              <div className="absolute left-[12%] top-4 h-[2px] w-[38%] bg-blue-500" />
-              <div className="relative">
-                <div className="mb-3 h-3 w-3 rounded-full bg-blue-600" />
-                <p className="text-xs font-semibold text-slate-800">Reserved</p>
-                <p className="text-[11px] text-slate-500">{new Date().toLocaleString()}</p>
-              </div>
-              <div className="relative">
-                <div className="mb-3 h-3 w-3 rounded-full border-2 border-blue-500 bg-white" />
-                <p className="text-xs font-semibold text-slate-800">Pick-up Expected</p>
-                <p className="text-[11px] text-slate-500">{pickUpFormatted}</p>
-              </div>
-              <div className="relative">
-                <div className="mb-3 h-3 w-3 rounded-full border border-slate-300 bg-white" />
-                <p className="text-xs font-semibold text-slate-400">Return Scheduled</p>
-                <p className="text-[11px] text-slate-400">{returnFormatted}</p>
-              </div>
-            </div>
-
-            {/* TABLEAU DE PLANIFICATION (En dessous, prend toute la largeur) */}
-            <div className="mt-8 border-t border-slate-100 pt-6">
-              {showPickUpPlanning ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm">
-                  <p className="mb-4 text-xl font-bold text-slate-800">{monthLabel}</p>
-                  {planningError ? (
-                    <p className="mb-3 text-sm font-medium text-amber-700">{planningError}</p>
-                  ) : null}
-                  
-                  {/* Légende Agrandie */}
-                  <div className="mb-6 flex flex-wrap gap-5 text-sm font-medium text-slate-600">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-5 w-10 rounded bg-emerald-500" />
-                      Disponible (sélection)
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-5 w-10 rounded bg-rose-500" />
-                      Non disponible
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-5 w-10 rounded bg-rose-200" />
-                      Fermé
-                    </span>
-                  </div>
-
-                  {/* En-tête du tableau Agrandie */}
-                  <div className="grid grid-cols-7 overflow-hidden rounded-lg border border-slate-300 text-center text-sm shadow-sm">
-                    {planningDays.map((d) => (
-                      <div key={d} className="border-r border-slate-300 bg-white py-3 font-bold text-slate-800 last:border-r-0">
-                        {d}
-                      </div>
-                    ))}
-                    {planningDates.map((d) => (
-                      <div key={d} className="border-r border-t border-slate-300 bg-white py-3 text-slate-700 last:border-r-0">
-                        {d}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Lignes du tableau Agrandies */}
-                  <div className="mt-4 space-y-3">
-                    {planningRows.map((row, rowIndex) => (
-                      <div key={`${row.label}-${rowIndex}`} className="grid grid-cols-7 gap-2">
-                        {Array.from({ length: 7 }).map((_, idx) => {
-                          const segment = row.segments.find(
-                            (seg) => idx >= seg.start && idx < seg.start + seg.span
-                          );
-
-                          if (!segment) {
-                            return <div key={idx} className="h-12 rounded-md bg-slate-200/50" />;
-                          }
-
-                          if (segment.note) {
-                            return (
-                              <div
-                                key={idx}
-                                className={`flex h-12 items-center justify-center rounded-md text-xs font-bold shadow-sm ${NOTE_CLOSED_CLASS}`}
-                              >
-                                {segment.note}
-                              </div>
-                            );
-                          }
-
-                          const isSegmentStart = idx === segment.start;
-                          const barClass = ROW_BAR_CLASS[row.kind] ?? ROW_BAR_CLASS.unavailable;
-                          const isSelectable = row.kind === "available";
-                          const isSelected = selectedPlanningSlots.some(
-                            (slot) => slot.row === rowIndex && slot.day === idx
-                          );
-
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => togglePlanningSlot(rowIndex, idx)}
-                              className={`flex h-12 items-center transition-all overflow-hidden whitespace-nowrap ${
-                                isSegmentStart ? "justify-start pl-3" : "justify-center"
-                              } rounded-md ${barClass} text-sm font-bold shadow-sm ${
-                                isSelectable ? "cursor-pointer hover:brightness-110" : "cursor-not-allowed opacity-90"
-                              } ${isSelected ? "ring-4 ring-blue-500 ring-offset-1" : ""}`}
-                            >
-                              {isSegmentStart ? row.label : ""}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <p className="mt-6 text-sm font-medium text-slate-500">
-                    Selected slots: <span className="text-slate-800">{selectedSlotsLabel || "none"}</span>
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleReserveFromPlanning}
-                    className="mt-4 w-full rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-blue-700 sm:w-auto"
-                  >
-                    Réserver les créneaux
-                  </button>
+            {/* SIMPLIFIED TIMELINE */}
+            <div className="space-y-4">
+              {/* Progress Status */}
+              <div className="flex items-center justify-between">
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
+                  progressData.currentStep === "completed" ? "bg-emerald-100 text-emerald-700" :
+                  progressData.currentStep === "in-progress" ? "bg-blue-100 text-blue-700" :
+                  "bg-slate-100 text-slate-700"
+                }`}>
+                  {progressData.currentStep === "completed" && "✓ Terminee"}
+                  {progressData.currentStep === "in-progress" && <><FaCar />   En cours</>}
+                  {progressData.currentStep === "reserved" && "📅 A venir"}
                 </div>
-              ) : (
-                <p className="mt-2 text-sm text-slate-500 text-center py-6 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
-                  Cliquez sur "Confirm Reservation" en bas de page pour afficher le planning interactif.
-                </p>
-              )}
+                <span className="text-sm font-semibold text-slate-600">
+                  {progressData.progressPercent.toFixed(0)}%
+                </span>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="relative h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    progressData.currentStep === "completed" ? "bg-emerald-500" :
+                    progressData.currentStep === "in-progress" ? "bg-blue-500" :
+                    "bg-slate-300"
+                  }`}
+                  style={{ width: `${progressData.progressPercent}%` }}
+                />
+              </div>
+
+              {/* Timeline Steps */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { name: "reserved", label: "Reservation", icon: "✓", date: new Date().toLocaleDateString("fr-FR") },
+                  { name: "pickup", label: "Retrait", icon: <FaCar />, date: bookingData?.pickUpDate },
+                  { name: "return", label: "Retour", icon: "✓", date: bookingData?.returnDate }
+                ].map((step) => {
+                  const styles = getStepStyles(progressData.currentStep, step.name);
+                  return (
+                    <div key={step.name} className={styles.container}>
+                      <div className={styles.icon}>{step.icon}</div>
+                      <p className={styles.text}>{step.label}</p>
+                      <p className={styles.date}>{step.date}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Time Details - Minimal */}
+              <div className="grid grid-cols-3 gap-2 text-xs pt-2">
+                <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                  <p className="text-slate-600 text-[10px]">Retrait</p>
+                  <p className="font-semibold text-slate-800 text-xs">{pickUpFormatted}</p>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                  <p className="text-slate-600 text-[10px]">Duree</p>
+                  <p className="font-semibold text-slate-800 text-xs">{days} jours</p>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                  <p className="text-slate-600 text-[10px]">Retour</p>
+                  <p className="font-semibold text-slate-800 text-xs">{returnFormatted}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -461,12 +404,12 @@ export default function Reservation() {
             <div className="space-y-4 lg:col-span-2">
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-slate-800">Vehicle Details</h2>
+                  <h2 className="text-sm font-semibold text-slate-800">Details du vehicule</h2>
                   <button
                     onClick={handleModify}
                     className="text-xs font-semibold text-blue-600"
                   >
-                    View Full Specs
+                    Voir les specifications
                   </button>
                 </div>
                 <div className="flex flex-col gap-4 md:flex-row">
@@ -477,11 +420,11 @@ export default function Reservation() {
                   />
                   <div className="space-y-2">
                     <h3 className="text-[28px] font-bold leading-tight text-slate-800">{vehicleName}</h3>
-                    <p className="text-xs text-slate-500">Standard Range Plus - Midnight Silver</p>
+                    <p className="text-xs text-slate-500">Standard Range Plus - Argent nuit</p>
                     <div className="flex flex-wrap gap-4 text-xs text-slate-600">
-                      <span>Electric</span>
-                      <span>Automatic</span>
-                      <span>{bookingData?.seats || 5} Seats</span>
+                      <span>Electrique</span>
+                      <span>Automatique</span>
+                      <span>{bookingData?.seats || 5} places</span>
                     </div>
                   </div>
                 </div>
@@ -489,49 +432,49 @@ export default function Reservation() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-blue-500">
-                    <MapPin size={12} />
-                    Pick-up Location
+                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                    <FaMapMarkerAlt size={11} className="text-blue-600" />
+                    Lieu de retrait
                   </p>
                   <h4 className="mt-2 text-sm font-semibold text-slate-800">{agency}</h4>
                   <p className="text-xs text-slate-500">{city}</p>
-                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-400">
-                    <Clock3 size={12} />
-                    Open 24/7
+                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-600">
+                    <FaClock size={11} />
+                    Ouvert 24h/24 7j/7
                   </p>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                    <Phone size={12} />
+                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                    <FaPhone size={11} />
                     +49 30 1234 5678
                   </p>
                   <button
                     onClick={() => handleOpenMap(`${agency}, ${city}`)}
-                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600"
+                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-100 transition-colors"
                   >
-                    View on Map
+                    Voir sur la carte
                   </button>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-blue-500">
-                    <Route size={12} />
-                    Drop-off Location
+                  <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                    <FaRoad size={11} className="text-blue-600" />
+                    Lieu de retour
                   </p>
                   <h4 className="mt-2 text-sm font-semibold text-slate-800">Berlin City Center - Alexanderplatz</h4>
                   <p className="text-xs text-slate-500">Karl-Liebknecht-Str. 5, 10178 Berlin, Germany</p>
-                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-400">
-                    <Clock3 size={12} />
+                  <p className="mt-3 flex items-center gap-1 text-xs text-slate-600">
+                    <FaClock size={11} />
                     08:00 - 20:00
                   </p>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                    <Phone size={12} />
+                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                    <FaPhone size={11} />
                     +49 30 8765 4321
                   </p>
                   <button
                     onClick={() =>
                       handleOpenMap("Berlin City Center - Alexanderplatz, Berlin")
                     }
-                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600"
+                    className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-100 transition-colors"
                   >
-                    View on Map
+                    Voir sur la carte
                   </button>
                 </div>
               </div>
@@ -539,24 +482,24 @@ export default function Reservation() {
 
             <aside className="space-y-4">
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="mb-4 text-sm font-semibold text-slate-800">Payment Summary</h3>
+                <h3 className="mb-4 text-sm font-semibold text-slate-800">Recapitulatif de paiement</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between text-slate-500">
-                    <span>Rental Rate ({days} days)</span>
+                    <span>Tarif location ({days} jours)</span>
                     <span className="font-semibold text-slate-800">{formatMoney(basePrice)}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
-                    <span>Premium insurance</span>
+                    <span>Assurance premium</span>
                     <span className="font-semibold text-slate-800">{formatMoney(insurancePrice)}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
-                    <span>Taxes & Fees</span>
+                    <span>Taxes et frais</span>
                     <span className="font-semibold text-slate-800">{formatMoney(serviceFee)}</span>
                   </div>
                 </div>
                 <div className="mt-4 border-t border-slate-200 pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-800">Total Amount</span>
+                    <span className="text-sm font-semibold text-slate-800">Montant total</span>
                     <span className="text-[30px] font-bold text-blue-600">
                       {formatMoney(totalPrice)}
                     </span>
@@ -565,29 +508,39 @@ export default function Reservation() {
                     onClick={handleDownloadReceipt}
                     className="mt-4 w-full rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-blue-600"
                   >
-                    Download Invoice (PDF)
+                    Telecharger la facture (PDF)
                   </button>
                 </div>
               </div>
             </aside>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-sm">
-            <p className="text-slate-600">
-              Need to change your plans? Free cancellation available within 24h.
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-600">
+              Besoin de modifier vos plans ? Annulation gratuite sous 24h.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={handleConfirm}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none rounded-lg border border-slate-300 bg-white px-5 py-2 font-semibold transition-colors ${
+                  isLoading
+                    ? "opacity-50 cursor-not-allowed text-slate-500"
+                    : "text-slate-700 hover:bg-slate-50"
+                }`}
               >
-                Confirm Reservation
+                {isLoading ? "Confirmation..." : "Confirmer"}
               </button>
               <button
                 onClick={handleCancel}
-                className="rounded-md border border-rose-200 px-4 py-2 font-semibold text-rose-600 hover:bg-rose-50"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none rounded-lg border border-red-300 bg-white px-5 py-2 font-semibold transition-colors ${
+                  isLoading
+                    ? "opacity-50 cursor-not-allowed text-red-400"
+                    : "text-red-600 hover:bg-red-50"
+                }`}
               >
-                Cancel Reservation
+                Annuler
               </button>
             </div>
           </div>
