@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 
 
 export default function Dashboard() {
-
+  //fake Data
   const bookings = [
     {
       name: "Tesla Model 3",
@@ -329,6 +329,7 @@ padding:20px;
           </div>
 
           
+ 
 
         </div>
 
